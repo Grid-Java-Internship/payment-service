@@ -132,6 +132,47 @@ class TransactionServiceImplTest {
         verify(transactionRepository).save(transaction);
 
     }
+    @Test
+    void withdraw_shouldCompleteTransaction_whenSufficientBalance() {
+
+        when(userBalanceRepository.findById(1L)).thenReturn(Optional.of(userBalance));
+        when(transactionMapper.dtoToEntity(transactionDTO)).thenReturn(transaction);
+        when(transactionRepository.save(transaction)).thenReturn(transaction);
+
+
+        TransactionResponse response = transactionService.withdraw(transactionDTO);
+
+        assertNotNull(response);
+        assertEquals(Status.COMPLETED, transactionDTO.getStatus());
+        assertEquals("You have successfully withdrawn 5000.0 credits. New balance: 0.0", response.getReturnMessage());
+
+        verify(userBalanceRepository).findById(1L);
+        verify(transactionMapper).dtoToEntity(transactionDTO);
+        verify(transactionRepository).save(transaction);
+
+    }
+
+    @Test
+    void withdraw_shouldRejectTransaction_whenInsufficientBalance() {
+
+        userBalance.setBalance(500.0);
+
+        when(userBalanceRepository.findById(1L)).thenReturn(Optional.of(userBalance));
+        when(transactionMapper.dtoToEntity(transactionDTO)).thenReturn(transaction);
+        when(transactionRepository.save(transaction)).thenReturn(transaction);
+
+
+        TransactionResponse response = transactionService.withdraw(transactionDTO);
+
+        assertNotNull(response);
+        assertEquals(Status.REJECTED, transactionDTO.getStatus());
+        assertEquals("Transaction rejected. Insufficient funds in your account.", response.getReturnMessage());
+
+        verify(userBalanceRepository).findById(1L);
+        verify(transactionMapper).dtoToEntity(transactionDTO);
+        verify(transactionRepository).save(transaction);
+
+    }
 
 
 }

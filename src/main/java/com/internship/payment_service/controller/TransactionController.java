@@ -13,11 +13,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/v1/payments")
+@RequestMapping("/v1/transactions")
 @RequiredArgsConstructor
 public class TransactionController {
 
     private final TransactionService transactionService;
+
 
     @PostMapping("/deposit")
     public ResponseEntity<TransactionResponse> deposit(@Valid @RequestBody TransactionDTO transactionDTO) {
@@ -25,4 +26,10 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.deposit(transactionDTO));
     }
 
+    @PostMapping("/withdraw")
+    public ResponseEntity<TransactionResponse> withdraw(@Valid @RequestBody TransactionDTO transactionDTO){
+
+        return ResponseEntity.ok(transactionService.withdraw(transactionDTO));
     }
+
+}

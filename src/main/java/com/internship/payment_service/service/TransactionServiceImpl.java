@@ -28,19 +28,19 @@ public class TransactionServiceImpl implements TransactionService {
     @Transactional
     public TransactionResponse deposit(TransactionDTO transactionDTO) {
 
+        UserBalance userBalance = userBalanceRepository.findById(transactionDTO.getUserBalance().getUserId()).
+                orElseThrow(() -> new NotFoundException("User with id: " + transactionDTO.getUserBalance().getUserId() + " not found!!"));
 
-        Status status = processTransactionType(transactionDTO.getAmount());
+        Status status = processStatusType(transactionDTO.getAmount());
         transactionDTO.setStatus(status);
         log.info("{}", transactionDTO);
 
-        UserBalance userBalance = userBalanceRepository.findById(transactionDTO.getUserBalance().getUserId())
-                .orElseThrow(() -> new NotFoundException("User with id: " + transactionDTO.getUserBalance().getUserId() + " not found!!"));
-
-//        if (status == Status.ON_HOLD) {
+//             if (status == Status.ON_HOLD) {
 //            //TO DO
 //            //CALL NOTIFICATION SERVICE
 //            //...
 //        }
+
         userBalance.setBalance(transactionDTO.getAmount() + userBalance.getBalance());
 
         Transaction transaction = transactionMapper.dtoToEntity(transactionDTO);
@@ -50,17 +50,56 @@ public class TransactionServiceImpl implements TransactionService {
 
         transaction = transactionRepository.save(transaction);
 
-        return TransactionResponse.builder()
-                .returnMessage("You have successfully added " + transactionDTO.getAmount() + " credits. New balance: " + transaction.getUserBalance().getBalance())
-                .build();
+        return TransactionResponse.builder().returnMessage("You have successfully added " + transactionDTO.getAmount() + " credits. New balance: " + transaction.getUserBalance().getBalance()).build();
 
 
     }
 
-    private Status processTransactionType(Double amount) {
+    @Override
+    public TransactionResponse withdraw(TransactionDTO transactionDTO) {
 
-        if (amount > 100000)
-            return Status.ON_HOLD;
+
+
+        UserBalance userBalance = userBalanceRepository.findById(transactionDTO.getUserBalance().getUserId())
+                .orElseThrow(() -> new NotFoundException("User with id: " + transactionDTO.getUserBalance().getUserId() + " not found!!"));
+
+        Status status = processStatusType(transactionDTO.getAmount(),userBalance.getBalance());
+        transactionDTO.setStatus(status);
+        log.info("{}", transactionDTO);
+        if(transactionDTO.getStatus()==Status.COMPLETED){
+            userBalance.setBalance(userBalance.getBalance()-transactionDTO.getAmount());
+
+        }
+
+        Transaction transaction = transactionMapper.dtoToEntity(transactionDTO);
+        transaction.setUserBalance(userBalance);
+
+        log.info("{}", transaction);
+
+        transaction = transactionRepository.save(transaction);
+
+        return TransactionResponse.builder()
+                .returnMessage(transactionDTO.getStatus() == Status.COMPLETED
+                        ? "You have successfully withdrawn " + transactionDTO.getAmount() + " credits. New balance: " + transaction.getUserBalance().getBalance()
+                        : "Transaction rejected. Insufficient funds in your account.")
+                .build();
+
+
+
+
+    }
+
+
+    private Status processStatusType(Double amount) {
+
+        if (amount > 100000) return Status.ON_HOLD;
+
+        return Status.COMPLETED;
+    }
+    private Status processStatusType(Double amountToWithdraw,Double userBalance) {
+
+        if(amountToWithdraw>userBalance)
+            return Status.REJECTED;
         return Status.COMPLETED;
     }
 }

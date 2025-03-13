@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -87,6 +88,21 @@ class UserBalanceServiceImplTest {
         assertEquals("User not found", exception.getMessage());
         verify(userProxy).getUserById(1L);
         verify(userBalanceRepository, never()).save(any());
+    }
+
+    @Test
+    void addUserBalance_shouldThrowIllegalArgumentException_whenUserBalanceAlreadyExists() {
+
+        when(userBalanceRepository.existsById(1L)).thenReturn(true);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> userBalanceService.addUserBalance(userBalanceDTO));
+
+        assertEquals("User balance with id: 1 already exists!!", exception.getMessage());
+
+        verify(userProxy,never()).getUserById(userBalanceDTO.getUserId());
+        verify(userBalanceRepository, never()).save(any());
+        verify(userBalanceMapper, never()).dtoToEntity(userBalanceDTO);
     }
 
 }

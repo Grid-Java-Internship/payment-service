@@ -25,6 +25,10 @@ public class UserBalanceServiceImpl implements UserBalanceService{
     @Override
     public String addUserBalance(UserBalanceDTO userBalanceDTO) {
 
+        if(userBalanceRepository.existsById(userBalanceDTO.getUserId())){
+            throw new IllegalArgumentException("User balance with id: " + userBalanceDTO.getUserId() + " already exists!!");
+        }
+
         UserDTO userDTO;
         log.info("UserBalanceDTO with id: {} and balance: {} ",userBalanceDTO.getUserId(),userBalanceDTO.getBalance());
         try {

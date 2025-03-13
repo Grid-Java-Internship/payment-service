@@ -8,4 +8,6 @@ public interface TransactionService {
 
     TransactionResponse deposit(TransactionDTO transactionDTO);
 
+    TransactionResponse withdraw(TransactionDTO transactionDTO);
+
 }
