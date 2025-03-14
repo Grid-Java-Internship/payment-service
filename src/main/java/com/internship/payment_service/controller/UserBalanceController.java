@@ -18,7 +18,7 @@ public class UserBalanceController {
     private final UserBalanceService userBalanceService;
 
     @PostMapping("/addUserBalance")
-    public ResponseEntity<String> addUserBalance(@RequestBody UserBalanceDTO userBalanceDTO){
+    public ResponseEntity<String> addUserBalance(@RequestBody UserBalanceDTO userBalanceDTO) {
 
         return ResponseEntity.ok(userBalanceService.addUserBalance(userBalanceDTO));
     }

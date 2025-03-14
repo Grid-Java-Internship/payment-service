@@ -27,7 +27,7 @@ public class TransactionController {
     }
 
     @PostMapping("/withdraw")
-    public ResponseEntity<TransactionResponse> withdraw(@Valid @RequestBody TransactionDTO transactionDTO){
+    public ResponseEntity<TransactionResponse> withdraw(@Valid @RequestBody TransactionDTO transactionDTO) {
 
         return ResponseEntity.ok(transactionService.withdraw(transactionDTO));
     }

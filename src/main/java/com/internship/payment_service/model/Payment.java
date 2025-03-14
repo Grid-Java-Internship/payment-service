@@ -28,7 +28,7 @@ public class Payment {
     private UserBalance userSender;
 
     @NotNull(message = "User who receives money cannot be null!!!")
-    @ManyToOne(cascade = {CascadeType.MERGE,CascadeType.PERSIST})
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     private UserBalance userReceiver;
 
     @NotNull(message = "Amount of money sent cannot be null!!!")

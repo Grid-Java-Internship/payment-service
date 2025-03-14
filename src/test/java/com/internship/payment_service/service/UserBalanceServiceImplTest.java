@@ -67,16 +67,17 @@ class UserBalanceServiceImplTest {
         when(userBalanceMapper.dtoToEntity(userBalanceDTO)).thenReturn(userBalance);
         when(userBalanceRepository.save(userBalance)).thenReturn(userBalance);
 
-        String response= userBalanceService.addUserBalance(userBalanceDTO);
+        String response = userBalanceService.addUserBalance(userBalanceDTO);
 
         assertNotNull(response);
-        assertEquals("Successfully added user with initial balance 0",response);
+        assertEquals("Successfully added user with initial balance 0", response);
 
         verify(userProxy).getUserById(userBalance.getUserId());
         verify(userBalanceMapper).dtoToEntity(userBalanceDTO);
         verify(userBalanceRepository).save(userBalance);
 
     }
+
     @Test
     void addUserBalance_shouldThrowNotFoundException_whenUserNotFound() {
 
@@ -100,7 +101,7 @@ class UserBalanceServiceImplTest {
 
         assertEquals("User balance with id: 1 already exists!!", exception.getMessage());
 
-        verify(userProxy,never()).getUserById(userBalanceDTO.getUserId());
+        verify(userProxy, never()).getUserById(userBalanceDTO.getUserId());
         verify(userBalanceRepository, never()).save(any());
         verify(userBalanceMapper, never()).dtoToEntity(userBalanceDTO);
     }

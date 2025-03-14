@@ -59,15 +59,14 @@ public class TransactionServiceImpl implements TransactionService {
     public TransactionResponse withdraw(TransactionDTO transactionDTO) {
 
 
-
         UserBalance userBalance = userBalanceRepository.findById(transactionDTO.getUserBalance().getUserId())
                 .orElseThrow(() -> new NotFoundException("User with id: " + transactionDTO.getUserBalance().getUserId() + " not found!!"));
 
-        Status status = processStatusType(transactionDTO.getAmount(),userBalance.getBalance());
+        Status status = processStatusType(transactionDTO.getAmount(), userBalance.getBalance());
         transactionDTO.setStatus(status);
         log.info("{}", transactionDTO);
-        if(transactionDTO.getStatus()==Status.COMPLETED){
-            userBalance.setBalance(userBalance.getBalance()-transactionDTO.getAmount());
+        if (transactionDTO.getStatus() == Status.COMPLETED) {
+            userBalance.setBalance(userBalance.getBalance() - transactionDTO.getAmount());
 
         }
 
@@ -85,20 +84,20 @@ public class TransactionServiceImpl implements TransactionService {
                 .build();
 
 
-
-
     }
 
-
-    private Status processStatusType(Double amount) {
+    @Override
+    public Status processStatusType(Double amount) {
 
         if (amount > 100000) return Status.ON_HOLD;
 
         return Status.COMPLETED;
     }
-    private Status processStatusType(Double amountToWithdraw,Double userBalance) {
 
-        if(amountToWithdraw>userBalance)
+    @Override
+    public Status processStatusType(Double amountToWithdraw, Double userBalance) {
+
+        if (amountToWithdraw > userBalance)
             return Status.REJECTED;
         return Status.COMPLETED;
     }

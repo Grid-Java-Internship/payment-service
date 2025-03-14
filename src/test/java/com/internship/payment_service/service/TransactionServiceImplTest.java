@@ -42,10 +42,10 @@ class TransactionServiceImplTest {
     private TransactionDTO transactionDTO;
     private UserBalance userBalance;
     private Transaction transaction;
-    private final LocalDateTime currentDateTime=LocalDateTime.now();
+    private final LocalDateTime currentDateTime = LocalDateTime.now();
 
     @BeforeEach
-    void beforeEach(){
+    void beforeEach() {
 
         UserBalanceDTO userBalanceDTO = UserBalanceDTO.builder()
                 .userId(1L)
@@ -78,7 +78,6 @@ class TransactionServiceImplTest {
     void deposit_shouldAddAmountAndReturnSuccessMessage_whenAmountIsLessOrEqual100000() {
 
 
-
         when(userBalanceRepository.findById(1L)).thenReturn(Optional.of(userBalance));
         when(transactionMapper.dtoToEntity(transactionDTO)).thenReturn(transaction);
         when(transactionRepository.save(transaction)).thenReturn(transaction);
@@ -93,7 +92,6 @@ class TransactionServiceImplTest {
         verify(userBalanceRepository).findById(1L);
         verify(transactionMapper).dtoToEntity(transactionDTO);
         verify(transactionRepository).save(transaction);
-
 
 
     }
@@ -113,7 +111,7 @@ class TransactionServiceImplTest {
     }
 
     @Test
-    void deposit_shouldAddAmountAndWaitForApproval_WithStatusOnHold(){
+    void deposit_shouldAddAmountAndWaitForApproval_WithStatusOnHold() {
 
         transactionDTO.setAmount(500000.0);
 
@@ -132,6 +130,7 @@ class TransactionServiceImplTest {
         verify(transactionRepository).save(transaction);
 
     }
+
     @Test
     void withdraw_shouldCompleteTransaction_whenSufficientBalance() {
 

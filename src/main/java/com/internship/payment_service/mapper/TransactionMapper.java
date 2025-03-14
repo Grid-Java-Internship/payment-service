@@ -4,7 +4,7 @@ import com.internship.payment_service.model.Transaction;
 import com.internship.payment_service.modelDTO.TransactionDTO;
 import org.mapstruct.Mapper;
 
-@Mapper(componentModel = "spring",uses = {UserBalanceMapper.class})
+@Mapper(componentModel = "spring", uses = {UserBalanceMapper.class})
 public interface TransactionMapper {
 
 

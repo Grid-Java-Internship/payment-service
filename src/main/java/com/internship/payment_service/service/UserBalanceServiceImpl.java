@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class UserBalanceServiceImpl implements UserBalanceService{
+public class UserBalanceServiceImpl implements UserBalanceService {
 
     private final UserProxy userProxy;
     private final UserBalanceRepository userBalanceRepository;
@@ -25,12 +25,12 @@ public class UserBalanceServiceImpl implements UserBalanceService{
     @Override
     public String addUserBalance(UserBalanceDTO userBalanceDTO) {
 
-        if(userBalanceRepository.existsById(userBalanceDTO.getUserId())){
+        if (userBalanceRepository.existsById(userBalanceDTO.getUserId())) {
             throw new IllegalArgumentException("User balance with id: " + userBalanceDTO.getUserId() + " already exists!!");
         }
 
         UserDTO userDTO;
-        log.info("UserBalanceDTO with id: {} and balance: {} ",userBalanceDTO.getUserId(),userBalanceDTO.getBalance());
+        log.info("UserBalanceDTO with id: {} and balance: {} ", userBalanceDTO.getUserId(), userBalanceDTO.getBalance());
         try {
 
             userDTO = userProxy.getUserById(userBalanceDTO.getUserId());
@@ -39,7 +39,7 @@ public class UserBalanceServiceImpl implements UserBalanceService{
         }
 
         userBalanceDTO.setUserId(userDTO.getId());
-        UserBalance userBalance=userBalanceMapper.dtoToEntity(userBalanceDTO);
+        UserBalance userBalance = userBalanceMapper.dtoToEntity(userBalanceDTO);
         log.info("User balance with id: {} and balance: {}", userBalance.getUserId(), userBalance.getBalance());
         userBalanceRepository.save(userBalance);
         return "Successfully added user with initial balance 0";

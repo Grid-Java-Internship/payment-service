@@ -20,12 +20,12 @@ import java.time.LocalDateTime;
 public class Transaction {
 
     @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long transactionId;
 
     @NotNull(message = "User cannot be null!!!")
     @ManyToOne(cascade = {CascadeType.MERGE})
-    private  UserBalance userBalance;
+    private UserBalance userBalance;
 
     @NotNull(message = "You must choose type of the transaction!!!")
     private TransactionType transactionType;
