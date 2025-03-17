@@ -1,9 +1,19 @@
 spring:
   profiles:
     active: default
+  datasource:
+    url: jdbc:${DB_TYPE:postgresql}://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:payment-service}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
   application:
     name: ${SPRING_APP_NAME:payment-service}
-
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
 logging:
   pattern:
     console: ${LOG_PATTERN_CONSOLE:%green(%d{HH:mm:ss.SSS}) %blue(%-5level) %red([%thread]) %yellow(%logger{15}) - %msg%n}
@@ -13,3 +23,16 @@ management:
     web:
       exposure:
         include: "*"
+
+
+microserviceUrls:
+  auth-service: http://localhost:8080
+  user-service: http://localhost:8081
+  job-service: http://localhost:8082
+  reservation-service: http://localhost:8083
+  review-service: http://localhost:8084
+  report-service: http://localhost:8085
+  chat-service: http://localhost:8086
+  notification-service: http://localhost:8087
+  recommendation-service: http://localhost:8088
+  payment-service: http://localhost:8089
