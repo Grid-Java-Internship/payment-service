@@ -27,47 +27,31 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public TransactionResponse deposit(TransactionDTO transactionDTO) {
-
-        UserBalance userBalance = userBalanceRepository.findById(transactionDTO.getUserBalance().getUserId()).
-                orElseThrow(() -> new NotFoundException("User with id: " + transactionDTO.getUserBalance().getUserId() + " not found!!"));
-
-        Status status = processStatusType(transactionDTO.getAmount());
-        transactionDTO.setStatus(status);
-        log.info("{}", transactionDTO);
-
-//             if (status == Status.ON_HOLD) {
-//            //TO DO
-//            //CALL NOTIFICATION SERVICE
-//            //...
-//        }
-
-        userBalance.setBalance(transactionDTO.getAmount() + userBalance.getBalance());
-
-        Transaction transaction = transactionMapper.dtoToEntity(transactionDTO);
-        transaction.setUserBalance(userBalance);
-
-        log.info("{}", transaction);
-
-        transaction = transactionRepository.save(transaction);
-
-        return TransactionResponse.builder().returnMessage("You have successfully added " + transactionDTO.getAmount() + " credits. New balance: " + transaction.getUserBalance().getBalance()).build();
-
-
+        return processTransaction(transactionDTO, PaymentAction.DEPOSIT);
     }
 
     @Override
+    @Transactional
     public TransactionResponse withdraw(TransactionDTO transactionDTO) {
+        return processTransaction(transactionDTO, PaymentAction.WITHDRAW);
+    }
 
-
+    private TransactionResponse processTransaction(TransactionDTO transactionDTO, PaymentAction paymentAction) {
         UserBalance userBalance = userBalanceRepository.findById(transactionDTO.getUserBalance().getUserId())
                 .orElseThrow(() -> new NotFoundException("User with id: " + transactionDTO.getUserBalance().getUserId() + " not found!!"));
 
-        Status status = processStatusType(transactionDTO.getAmount(), userBalance.getBalance());
+        Status status = (paymentAction == PaymentAction.DEPOSIT)
+                ? processStatusType(transactionDTO.getAmount())
+                : processStatusType(transactionDTO.getAmount(), userBalance.getBalance());
+
         transactionDTO.setStatus(status);
         log.info("{}", transactionDTO);
-        if (transactionDTO.getStatus() == Status.COMPLETED) {
-            userBalance.setBalance(userBalance.getBalance() - transactionDTO.getAmount());
 
+        if (transactionDTO.getStatus() == Status.COMPLETED || transactionDTO.getStatus() == Status.ON_HOLD) {
+            double newBalance = (paymentAction == PaymentAction.DEPOSIT)
+                    ? userBalance.getBalance() + transactionDTO.getAmount()
+                    : userBalance.getBalance() - transactionDTO.getAmount();
+            userBalance.setBalance(newBalance);
         }
 
         Transaction transaction = transactionMapper.dtoToEntity(transactionDTO);
@@ -76,29 +60,36 @@ public class TransactionServiceImpl implements TransactionService {
         log.info("{}", transaction);
 
         transaction = transactionRepository.save(transaction);
+        String message = getMessage(transactionDTO, paymentAction, transaction);
+        return TransactionResponse.builder().returnMessage(message).build();
+    }
 
-        return TransactionResponse.builder()
-                .returnMessage(transactionDTO.getStatus() == Status.COMPLETED
-                        ? "You have successfully withdrawn " + transactionDTO.getAmount() + " credits. New balance: " + transaction.getUserBalance().getBalance()
-                        : "Transaction rejected. Insufficient funds in your account.")
-                .build();
+    private static String getMessage(TransactionDTO transactionDTO, PaymentAction paymentAction, Transaction transaction) {
+        String message;
 
-
+        if (transactionDTO.getStatus() == Status.COMPLETED || transactionDTO.getStatus() == Status.ON_HOLD) {
+            if (paymentAction == PaymentAction.DEPOSIT) {
+                message = "You have successfully added " + transactionDTO.getAmount() + " credits. New balance: " + transaction.getUserBalance().getBalance();
+            } else {
+                message = "You have successfully withdrawn " + transactionDTO.getAmount() + " credits. New balance: " + transaction.getUserBalance().getBalance();
+            }
+        } else {
+            message = "Transaction rejected. Insufficient funds in your account.";
+        }
+        return message;
     }
 
     @Override
     public Status processStatusType(Double amount) {
-
-        if (amount > 100000) return Status.ON_HOLD;
-
-        return Status.COMPLETED;
+        return (amount > 100000) ? Status.ON_HOLD : Status.COMPLETED;
     }
 
     @Override
     public Status processStatusType(Double amountToWithdraw, Double userBalance) {
+        return (amountToWithdraw > userBalance) ? Status.REJECTED : Status.COMPLETED;
+    }
 
-        if (amountToWithdraw > userBalance)
-            return Status.REJECTED;
-        return Status.COMPLETED;
+    private enum PaymentAction {
+        DEPOSIT, WITHDRAW
     }
 }
