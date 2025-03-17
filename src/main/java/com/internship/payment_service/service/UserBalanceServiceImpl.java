@@ -7,10 +7,13 @@ import com.internship.payment_service.modelDTO.UserBalanceDTO;
 import com.internship.payment_service.proxy.UserDTO;
 import com.internship.payment_service.proxy.UserProxy;
 import com.internship.payment_service.repository.UserBalanceRepository;
+import com.internship.payment_service.response.UserBalanceResponse;
 import feign.FeignException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -51,5 +54,17 @@ public class UserBalanceServiceImpl implements UserBalanceService {
         log.info("User balance with id: {} and balance: {}", userBalance.getUserId(), userBalance.getBalance());
         userBalanceRepository.save(userBalance);
         return "Successfully added user with initial balance 0";
+    }
+
+    @Override
+    public UserBalanceResponse getUserBalanceById(Long userId) {
+        Optional<UserBalance> userBalance = Optional.ofNullable(userBalanceRepository.findByUserId(userId));
+        if(userBalance.isEmpty()) {
+            throw new NotFoundException("User with id: " + userId + " not found!!");
+        }
+        return UserBalanceResponse.builder()
+                .userId(userBalance.get().getUserId())
+                .balance(userBalance.get().getBalance())
+                .build();
     }
 }

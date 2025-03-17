@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:${DB_TYPE:postgresql}://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:payment-service}
     username: ${DB_USER:postgres}
-    password: ${DB_PASSWORD:mikser1234567890}
+    password: ${DB_PASSWORD:postgres}
   application:
     name: ${SPRING_APP_NAME:payment-service}
   jpa:

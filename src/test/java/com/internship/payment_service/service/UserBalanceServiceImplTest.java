@@ -7,6 +7,7 @@ import com.internship.payment_service.modelDTO.UserBalanceDTO;
 import com.internship.payment_service.proxy.UserDTO;
 import com.internship.payment_service.proxy.UserProxy;
 import com.internship.payment_service.repository.UserBalanceRepository;
+import com.internship.payment_service.response.UserBalanceResponse;
 import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -104,6 +105,33 @@ class UserBalanceServiceImplTest {
         verify(userProxy, never()).getUserById(userBalanceDTO.getUserId());
         verify(userBalanceRepository, never()).save(any());
         verify(userBalanceMapper, never()).dtoToEntity(userBalanceDTO);
+    }
+
+    @Test
+    void getUserById_shouldReturnUserBalance_whenUserExists() {
+
+        when(userBalanceRepository.findByUserId(1L)).thenReturn(userBalance);
+
+        UserBalanceResponse result = userBalanceService.getUserBalanceById(1L);
+
+        assertNotNull(result);
+        assertEquals(1L, result.getUserId());
+        assertEquals(0.0, result.getBalance());
+
+        verify(userBalanceRepository, times(1)).findByUserId(1L);
+    }
+
+    @Test
+    void getUserById_shouldThrowNotFoundException_whenUserNotFound() {
+
+        when(userBalanceRepository.findByUserId(1L)).thenReturn(null);
+
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> userBalanceService.getUserBalanceById(1L));
+
+        assertEquals("User with id: 1 not found!!", exception.getMessage());
+
+        verify(userBalanceRepository, times(1)).findByUserId(1L);
     }
 
 }

@@ -2,13 +2,11 @@ package com.internship.payment_service.controller;
 
 
 import com.internship.payment_service.modelDTO.UserBalanceDTO;
+import com.internship.payment_service.response.UserBalanceResponse;
 import com.internship.payment_service.service.UserBalanceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/v1/users")
 @RestController
@@ -49,7 +47,13 @@ public class UserBalanceController {
      */
     @PostMapping("/addUserBalance")
     public ResponseEntity<String> addUserBalance(@RequestBody UserBalanceDTO userBalanceDTO) {
-
         return ResponseEntity.ok(userBalanceService.addUserBalance(userBalanceDTO));
     }
+
+    @GetMapping("/getBalance/{id}")
+    public ResponseEntity<UserBalanceResponse> getUserBalanceById(@PathVariable Long id) {
+        return ResponseEntity.ok(userBalanceService.getUserBalanceById(id));
+    }
+
+
 }
