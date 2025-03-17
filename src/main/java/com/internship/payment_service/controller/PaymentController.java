@@ -18,6 +18,13 @@ public class PaymentController {
 
     private final PaymentService paymentService;
 
+
+    /**
+     * Perform a payment.
+     *
+     * @param paymentDTO the payment details
+     * @return the payment result
+     */
     @PostMapping("/pay")
     public ResponseEntity<PaymentResponse> pay(@Valid @RequestBody PaymentDTO paymentDTO) {
         return ResponseEntity.ok(paymentService.pay(paymentDTO));

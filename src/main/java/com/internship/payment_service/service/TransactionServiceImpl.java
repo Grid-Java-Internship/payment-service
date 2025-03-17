@@ -24,11 +24,14 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionMapper transactionMapper;
     private final UserBalanceRepository userBalanceRepository;
 
+
+
     @Override
     @Transactional
     public TransactionResponse deposit(TransactionDTO transactionDTO) {
         return processTransaction(transactionDTO, PaymentAction.DEPOSIT);
     }
+
 
     @Override
     @Transactional
@@ -36,6 +39,16 @@ public class TransactionServiceImpl implements TransactionService {
         return processTransaction(transactionDTO, PaymentAction.WITHDRAW);
     }
 
+    /**
+     * This method processes a transaction based on the type of transaction (DEPOSIT, WITHDRAW).
+     * It checks if the user has enough balance for the transaction and if not, it will throw a
+     * {@link NotFoundException} with a message indicating that the user has insufficient balance.
+     * If the transaction is successful, it will add the transaction to the database and return a
+     * {@link TransactionResponse} with the transaction details and a success message.
+     * @param transactionDTO The transaction to be processed
+     * @param paymentAction The type of transaction (DEPOSIT, WITHDRAW)
+     * @return A {@link TransactionResponse} with the transaction details and a success message
+     */
     private TransactionResponse processTransaction(TransactionDTO transactionDTO, PaymentAction paymentAction) {
         UserBalance userBalance = userBalanceRepository.findById(transactionDTO.getUserBalance().getUserId())
                 .orElseThrow(() -> new NotFoundException("User with id: " + transactionDTO.getUserBalance().getUserId() + " not found!!"));
@@ -64,6 +77,18 @@ public class TransactionServiceImpl implements TransactionService {
         return TransactionResponse.builder().returnMessage(message).build();
     }
 
+
+    /**
+     * Generate a message based on the transaction details and the payment action.
+     * If the transaction is successful, it will return a message indicating that the transaction was
+     * successful and the new balance of the user. If the transaction status is ON_HOLD it will
+     * return a message indicating that the transaction is on hold. If the transaction is rejected,
+     * it will return a message indicating that the transaction was rejected due to insufficient balance.
+     * @param transactionDTO The transaction details
+     * @param paymentAction The type of transaction (DEPOSIT, WITHDRAW)
+     * @param transaction The transaction entity
+     * @return A message based on the transaction details and the payment action
+     */
     private static String getMessage(TransactionDTO transactionDTO, PaymentAction paymentAction, Transaction transaction) {
         String message;
 
@@ -78,6 +103,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
         return message;
     }
+
 
     @Override
     public Status processStatusType(Double amount) {

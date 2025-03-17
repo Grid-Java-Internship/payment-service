@@ -20,12 +20,25 @@ public class TransactionController {
     private final TransactionService transactionService;
 
 
+
+    /**
+     * Handles deposit transactions.
+     *
+     * @param transactionDTO the transaction details for the deposit
+     * @return ResponseEntity containing the transaction response
+     */
     @PostMapping("/deposit")
     public ResponseEntity<TransactionResponse> deposit(@Valid @RequestBody TransactionDTO transactionDTO) {
 
         return ResponseEntity.ok(transactionService.deposit(transactionDTO));
     }
 
+    /**
+     * Handles withdrawal transactions.
+     *
+     * @param transactionDTO the transaction details for the withdrawal
+     * @return ResponseEntity containing the transaction response
+     */
     @PostMapping("/withdraw")
     public ResponseEntity<TransactionResponse> withdraw(@Valid @RequestBody TransactionDTO transactionDTO) {
 

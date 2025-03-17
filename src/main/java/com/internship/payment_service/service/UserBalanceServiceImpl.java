@@ -22,6 +22,14 @@ public class UserBalanceServiceImpl implements UserBalanceService {
     private final UserBalanceMapper userBalanceMapper;
 
 
+    /**
+     * Add user balance to database.
+     *
+     * @param userBalanceDTO user balance to add
+     * @return success message
+     * @throws IllegalArgumentException if user balance with given id already exists
+     * @throws NotFoundException        if user with given id not found
+     */
     @Override
     public String addUserBalance(UserBalanceDTO userBalanceDTO) {
 
