@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RequestMapping("/v1/users")
+@RequestMapping("/v1/user/balance")
 @RestController
 @RequiredArgsConstructor
 public class UserBalanceController {
@@ -45,12 +45,12 @@ public class UserBalanceController {
      * @return a response entity with the message "Successfully added user with
      * initial balance 0".
      */
-    @PostMapping("/addUserBalance")
+    @PostMapping
     public ResponseEntity<String> addUserBalance(@RequestBody UserBalanceDTO userBalanceDTO) {
         return ResponseEntity.ok(userBalanceService.addUserBalance(userBalanceDTO));
     }
 
-    @GetMapping("/getBalance/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<UserBalanceResponse> getUserBalanceById(@PathVariable Long id) {
         return ResponseEntity.ok(userBalanceService.getUserBalanceById(id));
     }
