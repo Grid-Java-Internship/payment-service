@@ -67,4 +67,14 @@ public class UserBalanceServiceImpl implements UserBalanceService {
                 .balance(userBalance.get().getBalance())
                 .build();
     }
+
+    @Override
+    public Boolean deleteUserBalance(Long userId) {
+        UserBalance userBalance = userBalanceRepository.findById(userId).orElseThrow(() ->
+                new NotFoundException("UserBalance not found.")
+        );
+
+        userBalanceRepository.delete(userBalance);
+        return true;
+    }
 }

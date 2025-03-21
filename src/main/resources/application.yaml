@@ -24,6 +24,8 @@ management:
       exposure:
         include: "*"
 
+server:
+  port: ${SERVER_PORT:8089}
 
 microserviceUrls:
   auth-service: http://localhost:8080

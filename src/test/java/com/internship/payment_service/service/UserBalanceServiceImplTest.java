@@ -17,6 +17,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -134,4 +136,29 @@ class UserBalanceServiceImplTest {
         verify(userBalanceRepository, times(1)).findByUserId(1L);
     }
 
+    @Test
+    void deleteUserBalance_shouldDeleteUserBalance_whenItExists() {
+        when(userBalanceRepository.findById(1L)).thenReturn(Optional.of(userBalance));
+
+        doNothing().when(userBalanceRepository).delete(userBalance);
+
+        boolean result = userBalanceService.deleteUserBalance(1L);
+
+        assertTrue(result);
+        verify(userBalanceRepository, times(1)).findById(1L);
+        verify(userBalanceRepository, times(1)).delete(userBalance);
+    }
+
+    @Test
+    void deleteUserBalance_shouldThrowException_whenUserBalanceNotFound() {
+        when(userBalanceRepository.findById(1L)).thenReturn(Optional.empty());
+
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> userBalanceService.deleteUserBalance(1L));
+
+        assertEquals("UserBalance not found.", exception.getMessage());
+
+        verify(userBalanceRepository, times(1)).findById(1L);
+        verify(userBalanceRepository, never()).delete(userBalance);
+    }
 }
