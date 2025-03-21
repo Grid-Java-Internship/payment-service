@@ -9,4 +9,6 @@ public interface UserBalanceService {
 
     UserBalanceResponse getUserBalanceById(Long userId);
 
+    Boolean deleteUserBalance(Long userId);
+
 }

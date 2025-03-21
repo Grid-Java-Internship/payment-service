@@ -55,5 +55,8 @@ public class UserBalanceController {
         return ResponseEntity.ok(userBalanceService.getUserBalanceById(id));
     }
 
-
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Boolean> deleteUserBalanceById(@PathVariable Long id) {
+        return ResponseEntity.ok(userBalanceService.deleteUserBalance(id));
+    }
 }

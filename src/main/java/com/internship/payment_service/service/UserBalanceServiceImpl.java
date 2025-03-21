@@ -67,4 +67,21 @@ public class UserBalanceServiceImpl implements UserBalanceService {
                 .balance(userBalance.get().getBalance())
                 .build();
     }
+
+    /**
+     * Deletes the user balance associated with the given user ID.
+     *
+     * @param userId the ID of the user whose balance is to be deleted
+     * @return true if the user balance was successfully deleted
+     * @throws NotFoundException if the user balance with the given ID is not found
+     */
+    @Override
+    public Boolean deleteUserBalance(Long userId) {
+        UserBalance userBalance = userBalanceRepository.findById(userId).orElseThrow(() ->
+                new NotFoundException("UserBalance not found.")
+        );
+
+        userBalanceRepository.delete(userBalance);
+        return true;
+    }
 }
