@@ -18,6 +18,9 @@ configurations {
 	compileOnly {
 		extendsFrom annotationProcessor
 	}
+    configureEach {
+		exclude group: 'ch.qos.logback', module: 'logback-classic'
+	}
 }
 
 repositories {
@@ -42,7 +45,7 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testImplementation 'org.springframework.ampq:spring-rabbit-test'
+	testImplementation 'org.simplify4u:slf4j2-mock:2.4.0'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 

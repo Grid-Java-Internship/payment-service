@@ -17,6 +17,12 @@ public class DeleteBalanceConsumer {
 
     private final UserBalanceRepository userBalanceRepository;
 
+    /**
+     * Consume a message containing a user id to delete the user balance associated
+     * with that id.
+     *
+     * @param message the message containing the user id
+     */
     @RabbitListener(queues = "${configs.rabbitmq.queues.deleteBalance}")
     public void consumeMessage(Message message) {
         log.info("Attempting to delete user balance with id: {}", message.getUserId());
@@ -26,7 +32,7 @@ public class DeleteBalanceConsumer {
         if (userBalance.isPresent()) {
             userBalanceRepository.delete(userBalance.get());
         } else {
-            log.info("User balance with id {} not found.", message.getUserId());
+            log.error("User balance with id {} not found.", message.getUserId());
         }
     }
 }
