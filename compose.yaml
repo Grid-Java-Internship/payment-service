@@ -1,0 +1,16 @@
+services:
+  payment-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8089:8089"
+    container_name: payment-service
+    networks:
+      - global-network
+
+networks:
+  global-network:
+    name: global-network
+    external: true
+    driver: bridge
