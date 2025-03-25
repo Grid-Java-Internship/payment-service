@@ -2,7 +2,7 @@ spring:
   profiles:
     active: default
   datasource:
-    url: jdbc:${DB_TYPE:postgresql}://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:payment-service}
+    url: jdbc:${DB_TYPE:postgresql}://${DB_HOST:postgres}:${DB_PORT:5432}/${DB_NAME:payment_service}
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD:postgres}
   application:
@@ -24,15 +24,14 @@ management:
       exposure:
         include: "*"
 
+server:
+  port: ${SERVER_PORT:8089}
+
+configs:
+  rabbitmq:
+    queues:
+      deleteBalance: "deletePendingBalanceQueue"
 
 microserviceUrls:
-  auth-service: http://localhost:8080
-  user-service: http://localhost:8081
-  job-service: http://localhost:8082
-  reservation-service: http://localhost:8083
-  review-service: http://localhost:8084
-  report-service: http://localhost:8085
-  chat-service: http://localhost:8086
-  notification-service: http://localhost:8087
-  recommendation-service: http://localhost:8088
-  payment-service: http://localhost:8089
+  auth-service: http://auth-service:8080
+  user-service: http://user-service:8081
