@@ -10,6 +10,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Primary;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -30,14 +31,22 @@ class RabbitMQConfigTest {
 
     @Test
     void connectionFactory_shouldCreateCachingConnectionFactoryWithCorrectSettings() {
+        String testHost = "test-host";
+        String testUsername = "test-user";
+        String testPassword = "test-pass";
+
+        ReflectionTestUtils.setField(rabbitMQConfig, "rabbitmqHost", testHost);
+        ReflectionTestUtils.setField(rabbitMQConfig, "username", testUsername);
+        ReflectionTestUtils.setField(rabbitMQConfig, "password", testPassword);
+
         ConnectionFactory factory = rabbitMQConfig.connectionFactory();
 
         assertNotNull(factory);
         assertInstanceOf(CachingConnectionFactory.class, factory);
 
         CachingConnectionFactory cachingFactory = (CachingConnectionFactory) factory;
-        assertEquals("rabbitmq", cachingFactory.getHost());
-        assertEquals("guest", cachingFactory.getUsername());
+        assertEquals("test-host", cachingFactory.getHost());
+        assertEquals("test-user", cachingFactory.getUsername());
     }
 
     @Test
