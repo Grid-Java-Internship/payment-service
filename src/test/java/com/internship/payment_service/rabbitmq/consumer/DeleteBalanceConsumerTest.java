@@ -10,10 +10,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import ch.qos.logback.core.read.ListAppender;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.Logger;
 
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -23,11 +27,10 @@ class DeleteBalanceConsumerTest {
     @Mock
     private UserBalanceRepository userBalanceRepository;
 
-    @Mock
-    private Logger log;
-
     @InjectMocks
     private DeleteBalanceConsumer deleteBalanceConsumer;
+
+    private ListAppender<ILoggingEvent> logWatcher;
 
     private Message message;
     private UserBalance userBalance;
@@ -40,6 +43,10 @@ class DeleteBalanceConsumerTest {
                 .userId(1L)
                 .balance(0.0)
                 .build();
+
+        logWatcher = new ListAppender<>();
+        logWatcher.start();
+        ((Logger) LoggerFactory.getLogger(DeleteBalanceConsumer.class)).addAppender(logWatcher);
     }
 
     @Test
@@ -63,11 +70,11 @@ class DeleteBalanceConsumerTest {
 
         verify(userBalanceRepository, times(1)).findById(1L);
         verify(userBalanceRepository, never()).delete(any());
-        verify(log, times(1)).error("User balance with id {} not found.", 1L);
+        assertEquals("User balance with id 1 not found.", logWatcher.list.get(1).getFormattedMessage());
     }
 
     @AfterEach
     void afterEach() {
-        verify(log, times(1)).info("Attempting to delete user balance with id: {}", 1L);
+        assertEquals("Attempting to delete user balance with id: 1", logWatcher.list.get(0).getFormattedMessage());
     }
 }
