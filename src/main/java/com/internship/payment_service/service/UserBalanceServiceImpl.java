@@ -20,7 +20,6 @@ import java.util.Optional;
 @Slf4j
 public class UserBalanceServiceImpl implements UserBalanceService {
 
-    private final UserProxy userProxy;
     private final UserBalanceRepository userBalanceRepository;
     private final UserBalanceMapper userBalanceMapper;
 
@@ -40,16 +39,9 @@ public class UserBalanceServiceImpl implements UserBalanceService {
             throw new IllegalArgumentException("User balance with id: " + userBalanceDTO.getUserId() + " already exists!!");
         }
 
-        UserDTO userDTO;
         log.info("UserBalanceDTO with id: {} and balance: {} ", userBalanceDTO.getUserId(), userBalanceDTO.getBalance());
-        try {
 
-            userDTO = userProxy.getUserById(userBalanceDTO.getUserId());
-        } catch (FeignException exception) {
-            throw new NotFoundException("User not found");
-        }
-
-        userBalanceDTO.setUserId(userDTO.getId());
+        userBalanceDTO.setUserId(userBalanceDTO.getUserId());
         UserBalance userBalance = userBalanceMapper.dtoToEntity(userBalanceDTO);
         log.info("User balance with id: {} and balance: {}", userBalance.getUserId(), userBalance.getBalance());
         userBalanceRepository.save(userBalance);
