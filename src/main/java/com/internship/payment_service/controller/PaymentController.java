@@ -6,10 +6,9 @@ import com.internship.payment_service.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/v1/payments")
@@ -28,5 +27,10 @@ public class PaymentController {
     @PostMapping("/pay")
     public ResponseEntity<PaymentResponse> pay(@Valid @RequestBody PaymentDTO paymentDTO) {
         return ResponseEntity.ok(paymentService.pay(paymentDTO));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<PaymentDTO>> getAllPayments(){
+        return ResponseEntity.ok().body(paymentService.getAllPayments());
     }
 }
