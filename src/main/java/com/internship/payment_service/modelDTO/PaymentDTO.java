@@ -29,6 +29,5 @@ public class PaymentDTO {
 
     private LocalDateTime timeOfPayment;
 
-    @NotNull(message = "You must set the payment status!!!")
     private Status status;
 }

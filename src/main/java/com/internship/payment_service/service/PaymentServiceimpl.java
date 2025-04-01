@@ -13,7 +13,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,10 +44,10 @@ public class PaymentServiceimpl implements PaymentService {
     public PaymentResponse pay(PaymentDTO paymentDTO) {
 
         UserBalance userSender = userBalanceRepository.findById(paymentDTO.getUserSender().getUserId()).
-                orElseThrow(() -> new NotFoundException("User with id: " + paymentDTO.getUserSender().getUserId() + " not found!!"));
+                orElseThrow(() -> new NotFoundException("User Sender with id: " + paymentDTO.getUserSender().getUserId() + " not found!!"));
 
         UserBalance userReceiver = userBalanceRepository.findById(paymentDTO.getUserReceiver().getUserId()).
-                orElseThrow(() -> new NotFoundException("User with id: " + paymentDTO.getUserReceiver().getUserId() + " not found!!"));
+                orElseThrow(() -> new NotFoundException("User Receiver with id: " + paymentDTO.getUserReceiver().getUserId() + " not found!!"));
 
         if(Objects.equals(userSender.getUserId(), userReceiver.getUserId())) {
             throw new IllegalArgumentException("You cannot transfer money to yourself");
@@ -73,6 +75,10 @@ public class PaymentServiceimpl implements PaymentService {
                         : "Transaction rejected. Insufficient funds in your account.")
                 .build();
 
+    }
 
+    @Override
+    public List<PaymentDTO> getAllPayments() {
+        return paymentRepository.findAll().stream().map(paymentMapper::entityToDto).toList();
     }
 }
