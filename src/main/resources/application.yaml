@@ -2,8 +2,8 @@ spring:
   profiles:
     active: default
   datasource:
-    url: jdbc:${DB_TYPE:postgresql}://${DB_HOST:postgresql}:${DB_PORT:5432}/${DB_NAME:payment_service}
-    username: ${DB_USER:user123}
+    url: jdbc:${DB_TYPE:postgresql}://${DB_HOST:postgres}:${DB_PORT:5432}/${DB_NAME:payment_service}
+    username: ${DB_USER:pgAdmin}
     password: ${DB_PASSWORD:password}
   application:
     name: ${SPRING_APP_NAME:payment-service}
