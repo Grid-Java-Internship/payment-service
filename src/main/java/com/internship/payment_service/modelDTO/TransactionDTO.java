@@ -18,6 +18,8 @@ import java.time.LocalDateTime;
 @Builder
 public class TransactionDTO {
 
+    private Long transactionId;
+
     @NotNull(message = "User cannot be null!!!")
     private UserBalanceDTO userBalance;
 

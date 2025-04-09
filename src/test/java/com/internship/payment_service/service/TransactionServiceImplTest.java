@@ -8,6 +8,9 @@ import com.internship.payment_service.model.TransactionType;
 import com.internship.payment_service.model.UserBalance;
 import com.internship.payment_service.modelDTO.TransactionDTO;
 import com.internship.payment_service.modelDTO.UserBalanceDTO;
+import com.internship.payment_service.proxy.UserDTO;
+import com.internship.payment_service.proxy.UserProxy;
+import com.internship.payment_service.rabbitmq.producer.TransactionProducer;
 import com.internship.payment_service.repository.TransactionRepository;
 import com.internship.payment_service.repository.UserBalanceRepository;
 import com.internship.payment_service.response.TransactionResponse;
@@ -35,6 +38,12 @@ class TransactionServiceImplTest {
 
     @Mock
     private TransactionMapper transactionMapper;
+
+    @Mock
+    private TransactionProducer transactionProducer;
+
+    @Mock
+    private UserProxy userProxy;
 
     @InjectMocks
     private TransactionServiceImpl transactionService;
@@ -173,5 +182,30 @@ class TransactionServiceImplTest {
 
     }
 
+    @Test
+    void transactionOnHold_NotFoundUser(){
+        TransactionDTO transDto2 = transactionDTO;
+        transDto2.setStatus(Status.ON_HOLD);
+        when(userBalanceRepository.findById(anyLong())).thenReturn(Optional.ofNullable(userBalance));
+        when(userProxy.getUserById(anyLong())).thenThrow(NotFoundException.class);
+        assertThrows(NotFoundException.class, () -> transactionService.deposit(transDto2));
+    }
+
+    @Test
+    void transactionOnHold_SavedSuccessfully(){
+        TransactionDTO transDto2 = transactionDTO;
+        Transaction transaction2 = transaction;
+        transaction2.setStatus(Status.ON_HOLD);
+        transDto2.setStatus(Status.ON_HOLD);
+
+        when(userBalanceRepository.findById(anyLong())).thenReturn(Optional.ofNullable(userBalance));
+        when(userProxy.getUserById(anyLong())).thenReturn(UserDTO.builder().build());
+        when(transactionMapper.dtoToEntity(transDto2)).thenReturn(transaction2);
+        when(transactionRepository.save(any(Transaction.class))).thenReturn(transaction2);
+
+        assertDoesNotThrow(() -> transactionService.deposit(transDto2));
+
+        verify(transactionRepository).save(any(Transaction.class));
+    }
 
 }

@@ -10,6 +10,16 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Message {
-
     private Long userId;
+
+    private String emailTo;
+
+    private String title;
+
+    private String content;
+
+    public Message(Long userId){
+        this.userId = userId;
+    }
+
 }
