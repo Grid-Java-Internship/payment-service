@@ -59,11 +59,11 @@ public class TransactionServiceImpl implements TransactionService {
         UserBalance userBalance = userBalanceRepository.findById(transactionDTO.getUserBalance().getUserId())
                 .orElseThrow(() -> new NotFoundException("User with id: " + transactionDTO.getUserBalance().getUserId() + " not found!!"));
 
-        Status status = transactionDTO.getStatus();
+        Status status = processStatusType(transactionDTO.getAmount());
 
         if(Status.COMPLETED.equals(transactionDTO.getStatus())){
              status = (paymentAction == PaymentAction.DEPOSIT)
-                    ? processStatusType(transactionDTO.getAmount())
+                    ? Status.COMPLETED // TODO find a way to fix this IF call, if I go from ON_HOLD TO COMPLETED it shouldn't be possible to take it back to ON_HOLD
                     : processStatusType(transactionDTO.getAmount(), userBalance.getBalance());
         }
 
@@ -82,7 +82,7 @@ public class TransactionServiceImpl implements TransactionService {
 
             transaction = transactionRepository.save(transaction);
 
-            log.info("{}", transaction);
+            log.info("TRANSACTION: {}", transaction);
 
             transactionProducer.send(userDTO.getEmail(),transaction.getTransactionId(),Status.ON_HOLD);
 
