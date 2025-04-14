@@ -22,6 +22,16 @@ configurations {
 
 repositories {
 	mavenCentral()
+	maven {
+		name = "GitHubPackages"
+		url = uri("https://maven.pkg.github.com/Grid-Java-Internship/maven-libraries")
+		credentials {
+			println("GITHUB_USER: ${project.findProperty('githubUsername')}")
+			println("GITHUB_USER: ${project.findProperty('githubToken')}")
+			username = project.findProperty('githubUsername')
+			password = project.findProperty('githubToken')
+		}
+	}
 }
 
 dependencies {
@@ -35,6 +45,7 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.2.1'
 	implementation 'org.mockito:mockito-core:5.14.2'
 	implementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+	implementation 'com.internship:authentication_library:0.0.9-SNAPSHOT'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	runtimeOnly 'com.h2database:h2'

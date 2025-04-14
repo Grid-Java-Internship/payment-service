@@ -37,5 +37,25 @@ configs:
       deleteBalance: "deletePendingBalanceQueue"
 
 microserviceUrls:
-  auth-service: http://auth-service:8080
   user-service: http://user-service:8081
+
+security:
+  paths:
+    permittedRequestsForAllUsers:
+      - method: POST
+        pattern: /v1/user/balance
+      - method: DELETE
+        pattern: /v1/user/balance/{id}
+      - method: POST
+        pattern: /v1/payments/pay
+    permittedRequestsForUsersOrAdminOrSuperAdmin:
+      - method: GET
+        pattern: /v1/user/balance/{id}
+      - method: POST
+        pattern: /v1/transactions/deposit
+      - method: POST
+        pattern: /v1/transactions/withdraw
+    permittedRequestsForAdminOrSuperAdmin:
+      - method: GET
+        pattern: /v1/payments
+    permittedRequestForSuperAdmin: [ ]
