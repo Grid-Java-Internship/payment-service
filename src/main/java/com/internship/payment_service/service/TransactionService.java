@@ -15,4 +15,6 @@ public interface TransactionService {
 
     Status processStatusType(Double amountToWithdraw, Double userBalance);
 
+    void confirm(Long transactionId);
+
 }

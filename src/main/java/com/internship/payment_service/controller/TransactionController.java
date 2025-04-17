@@ -7,10 +7,7 @@ import com.internship.payment_service.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/v1/transactions")
@@ -45,4 +42,9 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.withdraw(transactionDTO));
     }
 
+    @PutMapping("/confirm/{id}")
+    public ResponseEntity<Void> confirmTransaction(@PathVariable("id") Long transactionId) {
+        transactionService.confirm(transactionId);
+        return ResponseEntity.ok().build();
+    }
 }

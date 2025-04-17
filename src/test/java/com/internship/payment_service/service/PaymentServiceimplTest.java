@@ -162,4 +162,5 @@ class PaymentServiceImplTest {
         NotFoundException exception = assertThrows(NotFoundException.class, () -> paymentService.pay(paymentDTO));
         assertEquals("User with id: 2 not found!!", exception.getMessage());
     }
+
 }

@@ -15,8 +15,6 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 public class PaymentDTO {
-
-
     @NotNull(message = "User who sends money cannot be null!!!")
     private UserBalanceDTO userSender;
 

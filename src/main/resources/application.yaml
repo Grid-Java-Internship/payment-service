@@ -14,6 +14,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   rabbitmq:
     host: ${RABBITMQ_HOST:rabbitmq}
     username: ${RABBITMQ_USERNAME:guest}
@@ -22,6 +23,7 @@ spring:
 logging:
   pattern:
     console: ${LOG_PATTERN_CONSOLE:%green(%d{HH:mm:ss.SSS}) %blue(%-5level) %red([%thread]) %yellow(%logger{15}) - %msg%n}
+
 management:
   endpoints:
     web:

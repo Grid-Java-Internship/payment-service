@@ -7,6 +7,9 @@ import com.internship.payment_service.model.Status;
 import com.internship.payment_service.model.Transaction;
 import com.internship.payment_service.model.UserBalance;
 import com.internship.payment_service.modelDTO.TransactionDTO;
+import com.internship.payment_service.proxy.UserDTO;
+import com.internship.payment_service.proxy.UserProxy;
+import com.internship.payment_service.rabbitmq.producer.TransactionProducer;
 import com.internship.payment_service.repository.TransactionRepository;
 import com.internship.payment_service.repository.UserBalanceRepository;
 import com.internship.payment_service.response.TransactionResponse;
@@ -14,6 +17,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +28,8 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final TransactionMapper transactionMapper;
     private final UserBalanceRepository userBalanceRepository;
-
+    private final TransactionProducer transactionProducer;
+    private final UserProxy userProxy;
 
 
     @Override
@@ -53,26 +59,59 @@ public class TransactionServiceImpl implements TransactionService {
         UserBalance userBalance = userBalanceRepository.findById(transactionDTO.getUserBalance().getUserId())
                 .orElseThrow(() -> new NotFoundException("User with id: " + transactionDTO.getUserBalance().getUserId() + " not found!!"));
 
-        Status status = (paymentAction == PaymentAction.DEPOSIT)
-                ? processStatusType(transactionDTO.getAmount())
-                : processStatusType(transactionDTO.getAmount(), userBalance.getBalance());
+        Status status = processStatusType(transactionDTO.getAmount());
+
+        if(Status.COMPLETED.equals(transactionDTO.getStatus())){
+             status = (paymentAction == PaymentAction.DEPOSIT)
+                    ? Status.COMPLETED // TODO find a way to fix this IF call, if I go from ON_HOLD TO COMPLETED it shouldn't be possible to take it back to ON_HOLD
+                    : processStatusType(transactionDTO.getAmount(), userBalance.getBalance());
+        }
 
         transactionDTO.setStatus(status);
+
         log.info("{}", transactionDTO);
 
-        if (transactionDTO.getStatus() == Status.COMPLETED || transactionDTO.getStatus() == Status.ON_HOLD) {
+        if(Status.ON_HOLD.equals(transactionDTO.getStatus()) && PaymentAction.DEPOSIT.equals(paymentAction)) {
+            UserDTO userDTO = Optional
+                    .of(userProxy
+                            .getUserById(userBalance.getUserId()))
+                    .orElseThrow(() -> new NotFoundException("User not found!"));
+
+            Transaction transaction = transactionMapper.dtoToEntity(transactionDTO);
+            transaction.setUserBalance(userBalance);
+
+            transaction = transactionRepository.save(transaction);
+
+            log.info("TRANSACTION: {}", transaction);
+
+            transactionProducer.send(userDTO.getEmail(),transaction.getTransactionId(),Status.ON_HOLD);
+
+            return TransactionResponse.builder().returnMessage("Your transaction is on hold. Please confirm it on mail").build();
+        }
+
+        if (Status.COMPLETED.equals(transactionDTO.getStatus())) {
             double newBalance = (paymentAction == PaymentAction.DEPOSIT)
                     ? userBalance.getBalance() + transactionDTO.getAmount()
                     : userBalance.getBalance() - transactionDTO.getAmount();
             userBalance.setBalance(newBalance);
         }
 
-        Transaction transaction = transactionMapper.dtoToEntity(transactionDTO);
+        Transaction transaction;
+
+        if(transactionDTO.getTransactionId() != null){
+            transaction = transactionRepository.findByTransactionId(transactionDTO.getTransactionId());
+            transaction.setUserBalance(userBalance);
+            transactionRepository.save(transaction);
+            log.info("TRASACTION AFTER CONFIRMATION: {}", transaction);
+            String message = getMessage(transactionDTO, paymentAction, transaction);
+            return TransactionResponse.builder().returnMessage(message).build();
+        }
+
+        transaction = transactionMapper.dtoToEntity(transactionDTO);
         transaction.setUserBalance(userBalance);
-
-        log.info("{}", transaction);
-
         transaction = transactionRepository.save(transaction);
+
+        log.info("TRASACTION AFTER CONFIRMATION: {}", transaction);
         String message = getMessage(transactionDTO, paymentAction, transaction);
         return TransactionResponse.builder().returnMessage(message).build();
     }
@@ -113,6 +152,16 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public Status processStatusType(Double amountToWithdraw, Double userBalance) {
         return (amountToWithdraw > userBalance) ? Status.REJECTED : Status.COMPLETED;
+    }
+    @Override
+    public void confirm(Long transactionId) {
+        Transaction transaction = transactionRepository
+                .findById(transactionId)
+                .orElseThrow(() -> new NotFoundException("Transaction with id: " + transactionId + " not found!!"));
+
+        transaction.setStatus(Status.COMPLETED);
+
+        processTransaction(transactionMapper.entityToDto(transaction), PaymentAction.DEPOSIT);
     }
 
     private enum PaymentAction {
