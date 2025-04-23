@@ -16,6 +16,7 @@ import com.internship.payment_service.response.TransactionResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -56,12 +57,13 @@ public class TransactionServiceImpl implements TransactionService {
      * @return A {@link TransactionResponse} with the transaction details and a success message
      */
     private TransactionResponse processTransaction(TransactionDTO transactionDTO, PaymentAction paymentAction) {
-        UserBalance userBalance = userBalanceRepository.findById(transactionDTO.getUserBalance().getUserId())
-                .orElseThrow(() -> new NotFoundException("User with id: " + transactionDTO.getUserBalance().getUserId() + " not found!!"));
+
+        UserBalance userBalance = userBalanceRepository
+                .findByUserId(Long.parseLong((String) SecurityContextHolder.getContext().getAuthentication().getPrincipal()));
 
         Status status = processStatusType(transactionDTO.getAmount());
 
-        if(Status.COMPLETED.equals(transactionDTO.getStatus())){
+        if(Status.COMPLETED.equals(status)){
              status = (paymentAction == PaymentAction.DEPOSIT)
                     ? Status.COMPLETED // TODO find a way to fix this IF call, if I go from ON_HOLD TO COMPLETED it shouldn't be possible to take it back to ON_HOLD
                     : processStatusType(transactionDTO.getAmount(), userBalance.getBalance());
@@ -102,7 +104,7 @@ public class TransactionServiceImpl implements TransactionService {
             transaction = transactionRepository.findByTransactionId(transactionDTO.getTransactionId());
             transaction.setUserBalance(userBalance);
             transactionRepository.save(transaction);
-            log.info("TRASACTION AFTER CONFIRMATION: {}", transaction);
+            log.info("TRANSACTION AFTER CONFIRMATION: {}", transaction);
             String message = getMessage(transactionDTO, paymentAction, transaction);
             return TransactionResponse.builder().returnMessage(message).build();
         }
@@ -111,7 +113,7 @@ public class TransactionServiceImpl implements TransactionService {
         transaction.setUserBalance(userBalance);
         transaction = transactionRepository.save(transaction);
 
-        log.info("TRASACTION AFTER CONFIRMATION: {}", transaction);
+        log.info("TRANSACTION AFTER CONFIRMATION: {}", transaction);
         String message = getMessage(transactionDTO, paymentAction, transaction);
         return TransactionResponse.builder().returnMessage(message).build();
     }

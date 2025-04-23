@@ -7,7 +7,6 @@ import com.internship.payment_service.model.Transaction;
 import com.internship.payment_service.model.TransactionType;
 import com.internship.payment_service.model.UserBalance;
 import com.internship.payment_service.modelDTO.TransactionDTO;
-import com.internship.payment_service.modelDTO.UserBalanceDTO;
 import com.internship.payment_service.proxy.UserDTO;
 import com.internship.payment_service.proxy.UserProxy;
 import com.internship.payment_service.rabbitmq.producer.TransactionProducer;
@@ -17,12 +16,15 @@ import com.internship.payment_service.response.TransactionResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -52,17 +54,22 @@ class TransactionServiceImplTest {
     private UserBalance userBalance;
     private Transaction transaction;
     private final LocalDateTime currentDateTime = LocalDateTime.now();
+    private final Long USER_ID = 1L;
+    private UserDTO userDTO;
+
+    private void mockSecurityContext(String userId) {
+        Authentication authentication = mock(Authentication.class);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(userId);
+        SecurityContextHolder.setContext(securityContext);
+    }
 
     @BeforeEach
     void beforeEach() {
-
-        UserBalanceDTO userBalanceDTO = UserBalanceDTO.builder()
-                .userId(1L)
-                .balance(5000.0)
-                .build();
+        SecurityContextHolder.clearContext();
 
         transactionDTO = TransactionDTO.builder()
-                .userBalance(userBalanceDTO)
                 .transactionType(TransactionType.PAYPAL)
                 .amount(5000.0)
                 .timeOfTransaction(currentDateTime)
@@ -74,10 +81,16 @@ class TransactionServiceImplTest {
                 .build();
 
         transaction = Transaction.builder()
+                .transactionId(1L)
                 .userBalance(userBalance)
                 .transactionType(TransactionType.PAYPAL)
                 .amount(5000.0)
                 .timeOfTransaction(currentDateTime)
+                .build();
+
+        userDTO = UserDTO.builder()
+                .id(USER_ID)
+                .email("test@user.com")
                 .build();
 
     }
@@ -85,127 +98,169 @@ class TransactionServiceImplTest {
 
     @Test
     void deposit_shouldAddAmountAndReturnSuccessMessage_whenAmountIsLessOrEqual100000() {
+        mockSecurityContext(String.valueOf(USER_ID));
+        double initialBalance = userBalance.getBalance();
+        double depositAmount = transactionDTO.getAmount();
+        double expectedNewBalance = initialBalance + depositAmount;
+        transaction.setStatus(Status.COMPLETED);
 
-
-        when(userBalanceRepository.findById(1L)).thenReturn(Optional.of(userBalance));
+        when(userBalanceRepository.findByUserId(USER_ID)).thenReturn(userBalance);
         when(transactionMapper.dtoToEntity(transactionDTO)).thenReturn(transaction);
-        when(transactionRepository.save(transaction)).thenReturn(transaction);
-
+        when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         TransactionResponse response = transactionService.deposit(transactionDTO);
 
         assertNotNull(response);
-        assertEquals(Status.COMPLETED, transactionDTO.getStatus());
-        assertEquals("You have successfully added 5000.0 credits. New balance: 10000.0", response.getReturnMessage());
+        ArgumentCaptor<Transaction> transactionCaptor = ArgumentCaptor.forClass(Transaction.class);
+        verify(transactionRepository).save(transactionCaptor.capture());
+        assertEquals(Status.COMPLETED, transactionCaptor.getValue().getStatus());
+        assertEquals(Status.COMPLETED,transactionDTO.getStatus());
 
-        verify(userBalanceRepository).findById(1L);
+        assertEquals(expectedNewBalance, userBalance.getBalance());
+        assertEquals("You have successfully added " + depositAmount + " credits. New balance: " + expectedNewBalance, response.getReturnMessage());
+
+        verify(userBalanceRepository).findByUserId(USER_ID);
         verify(transactionMapper).dtoToEntity(transactionDTO);
-        verify(transactionRepository).save(transaction);
-
-
+        verifyNoInteractions(userProxy, transactionProducer);
     }
 
-    @Test
-    void deposit_shouldThrowNotFoundException_whenUserBalanceNotFound() {
-
-        when(userBalanceRepository.findById(1L)).thenReturn(Optional.empty());
-
-        NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> transactionService.deposit(transactionDTO));
-
-        assertEquals("User with id: 1 not found!!", exception.getMessage());
-
-        verify(userBalanceRepository).findById(1L);
-        verify(transactionRepository, never()).save(any());
-    }
 
     @Test
-    void deposit_shouldAddAmountAndWaitForApproval_WithStatusOnHold() {
+    void deposit_shouldGoToOnHold_AndCallProxyAndProducer_WhenAmountIsLarge() {
+        mockSecurityContext(String.valueOf(USER_ID));
+        double highAmount = 500000.0;
+        transactionDTO.setAmount(highAmount);
+        transaction.setStatus(Status.ON_HOLD);
+        transaction.setAmount(highAmount);
 
-        transactionDTO.setAmount(500000.0);
-
-        when(userBalanceRepository.findById(1L)).thenReturn(Optional.of(userBalance));
+        when(userBalanceRepository.findByUserId(USER_ID)).thenReturn(userBalance);
         when(transactionMapper.dtoToEntity(transactionDTO)).thenReturn(transaction);
-        when(transactionRepository.save(transaction)).thenReturn(transaction);
+        ArgumentCaptor<Transaction> transactionCaptor = ArgumentCaptor.forClass(Transaction.class);
+        when(transactionRepository.save(transactionCaptor.capture())).thenReturn(transaction);
+
+        when(userProxy.getUserById(USER_ID)).thenReturn(userDTO);
+        doNothing().when(transactionProducer).send(anyString(), anyLong(), any(Status.class));
 
         TransactionResponse response = transactionService.deposit(transactionDTO);
 
         assertNotNull(response);
-        assertEquals(Status.ON_HOLD, transactionDTO.getStatus());
-        assertEquals("You have successfully added 500000.0 credits. New balance: 505000.0", response.getReturnMessage());
+        assertEquals("Your transaction is on hold. Please confirm it on mail", response.getReturnMessage());
+        assertEquals(Status.ON_HOLD, transactionCaptor.getValue().getStatus());
+        assertEquals(5000.0, userBalance.getBalance());
 
-        verify(userBalanceRepository).findById(1L);
+        verify(userBalanceRepository).findByUserId(USER_ID);
         verify(transactionMapper).dtoToEntity(transactionDTO);
-        verify(transactionRepository).save(transaction);
-
+        verify(transactionRepository).save(any(Transaction.class));
+        verify(userProxy).getUserById(USER_ID);
+        verify(transactionProducer).send(userDTO.getEmail(), transaction.getTransactionId(), Status.ON_HOLD);
     }
 
     @Test
     void withdraw_shouldCompleteTransaction_whenSufficientBalance() {
+        mockSecurityContext(String.valueOf(USER_ID));
+        double initialBalance = userBalance.getBalance();
+        double withdrawAmount = transactionDTO.getAmount();
+        double expectedNewBalance = initialBalance - withdrawAmount;
+        transaction.setStatus(Status.COMPLETED);
 
-        when(userBalanceRepository.findById(1L)).thenReturn(Optional.of(userBalance));
+        when(userBalanceRepository.findByUserId(USER_ID)).thenReturn(userBalance);
         when(transactionMapper.dtoToEntity(transactionDTO)).thenReturn(transaction);
-        when(transactionRepository.save(transaction)).thenReturn(transaction);
-
+        when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         TransactionResponse response = transactionService.withdraw(transactionDTO);
 
         assertNotNull(response);
         assertEquals(Status.COMPLETED, transactionDTO.getStatus());
-        assertEquals("You have successfully withdrawn 5000.0 credits. New balance: 0.0", response.getReturnMessage());
+        ArgumentCaptor<Transaction> transactionCaptor = ArgumentCaptor.forClass(Transaction.class);
+        verify(transactionRepository).save(transactionCaptor.capture());
+        assertEquals(Status.COMPLETED, transactionCaptor.getValue().getStatus());
 
-        verify(userBalanceRepository).findById(1L);
+        assertEquals(expectedNewBalance, userBalance.getBalance());
+        assertEquals("You have successfully withdrawn " + withdrawAmount + " credits. New balance: " + expectedNewBalance, response.getReturnMessage());
+
+        verify(userBalanceRepository).findByUserId(USER_ID);
         verify(transactionMapper).dtoToEntity(transactionDTO);
-        verify(transactionRepository).save(transaction);
-
+        verifyNoInteractions(userProxy, transactionProducer);
     }
 
     @Test
     void withdraw_shouldRejectTransaction_whenInsufficientBalance() {
-
+        mockSecurityContext(String.valueOf(USER_ID));
         userBalance.setBalance(500.0);
+        double initialBalance = userBalance.getBalance();
 
-        when(userBalanceRepository.findById(1L)).thenReturn(Optional.of(userBalance));
+        transaction.setStatus(Status.REJECTED);
+
+        when(userBalanceRepository.findByUserId(USER_ID)).thenReturn(userBalance);
         when(transactionMapper.dtoToEntity(transactionDTO)).thenReturn(transaction);
-        when(transactionRepository.save(transaction)).thenReturn(transaction);
-
+        when(transactionRepository.save(any(Transaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         TransactionResponse response = transactionService.withdraw(transactionDTO);
 
         assertNotNull(response);
         assertEquals(Status.REJECTED, transactionDTO.getStatus());
+        ArgumentCaptor<Transaction> transactionCaptor = ArgumentCaptor.forClass(Transaction.class);
+        verify(transactionRepository).save(transactionCaptor.capture());
+        assertEquals(Status.REJECTED, transactionCaptor.getValue().getStatus());
+
+        assertEquals(initialBalance, userBalance.getBalance());
         assertEquals("Transaction rejected. Insufficient funds in your account.", response.getReturnMessage());
 
-        verify(userBalanceRepository).findById(1L);
+        verify(userBalanceRepository).findByUserId(USER_ID);
         verify(transactionMapper).dtoToEntity(transactionDTO);
-        verify(transactionRepository).save(transaction);
+        verifyNoInteractions(userProxy, transactionProducer);
+    }
 
+
+    @Test
+    void depositOnHold_ThrowsNotFoundException_WhenUserProxyFails() {
+        mockSecurityContext(String.valueOf(USER_ID));
+        double highAmount = 500000.0;
+        transactionDTO.setAmount(highAmount);
+
+        when(userBalanceRepository.findByUserId(USER_ID)).thenReturn(userBalance);
+        when(userProxy.getUserById(USER_ID)).thenThrow(new NotFoundException("User proxy failed"));
+
+        NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+            transactionService.deposit(transactionDTO);
+        });
+        assertEquals("User proxy failed", exception.getMessage());
+
+        verify(userBalanceRepository).findByUserId(USER_ID);
+        verify(userProxy).getUserById(USER_ID);
+        verify(transactionRepository, never()).save(any(Transaction.class));
+        verify(transactionProducer, never()).send(anyString(), anyLong(), any(Status.class));
+        verifyNoInteractions(transactionMapper);
     }
 
     @Test
-    void transactionOnHold_NotFoundUser(){
-        TransactionDTO transDto2 = transactionDTO;
-        transDto2.setStatus(Status.ON_HOLD);
-        when(userBalanceRepository.findById(anyLong())).thenReturn(Optional.ofNullable(userBalance));
-        when(userProxy.getUserById(anyLong())).thenThrow(NotFoundException.class);
-        assertThrows(NotFoundException.class, () -> transactionService.deposit(transDto2));
-    }
+    void depositOnHold_Success_CallsSaveAndProducer() {
+        mockSecurityContext(String.valueOf(USER_ID));
+        double highAmount = 500000.0;
+        transactionDTO.setAmount(highAmount);
+        transaction.setStatus(Status.ON_HOLD);
+        transaction.setAmount(highAmount);
 
-    @Test
-    void transactionOnHold_SavedSuccessfully(){
-        TransactionDTO transDto2 = transactionDTO;
-        Transaction transaction2 = transaction;
-        transaction2.setStatus(Status.ON_HOLD);
-        transDto2.setStatus(Status.ON_HOLD);
+        when(userBalanceRepository.findByUserId(USER_ID)).thenReturn(userBalance);
+        when(userProxy.getUserById(USER_ID)).thenReturn(userDTO);
+        when(transactionMapper.dtoToEntity(transactionDTO)).thenReturn(transaction);
+        ArgumentCaptor<Transaction> transactionCaptor = ArgumentCaptor.forClass(Transaction.class);
+        when(transactionRepository.save(transactionCaptor.capture())).thenReturn(transaction);
+        doNothing().when(transactionProducer).send(anyString(), anyLong(), any(Status.class));
 
-        when(userBalanceRepository.findById(anyLong())).thenReturn(Optional.ofNullable(userBalance));
-        when(userProxy.getUserById(anyLong())).thenReturn(UserDTO.builder().build());
-        when(transactionMapper.dtoToEntity(transDto2)).thenReturn(transaction2);
-        when(transactionRepository.save(any(Transaction.class))).thenReturn(transaction2);
 
-        assertDoesNotThrow(() -> transactionService.deposit(transDto2));
+        TransactionResponse response = transactionService.deposit(transactionDTO);
 
+        assertNotNull(response);
+        assertEquals("Your transaction is on hold. Please confirm it on mail", response.getReturnMessage());
+        assertEquals(Status.ON_HOLD, transactionCaptor.getValue().getStatus());
+
+        verify(userBalanceRepository).findByUserId(USER_ID);
+        verify(userProxy).getUserById(USER_ID);
+        verify(transactionMapper).dtoToEntity(transactionDTO);
         verify(transactionRepository).save(any(Transaction.class));
+        verify(transactionProducer).send(userDTO.getEmail(), transaction.getTransactionId(), Status.ON_HOLD);
     }
+
 
 }
