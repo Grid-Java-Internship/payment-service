@@ -1,6 +1,10 @@
 # multistage build
 FROM gradle:8.12.1-jdk17 AS build
 
+#GITHUB_CREDENTIALS
+ARG GITHUB_USER_ARG
+ARG GITHUB_TOKEN_ARG
+
 # workdir of container
 WORKDIR /app
 
@@ -8,7 +12,7 @@ WORKDIR /app
 COPY . .
 
 # run Gradle build (equivalent to mvn clean && mvn install -DskipTests)
-RUN gradle clean build --no-daemon -x test
+RUN GITHUB_USER="$GITHUB_USER_ARG" GITHUB_TOKEN="$GITHUB_TOKEN_ARG" gradle clean build --no-daemon -x test
 
 # lightweight image for runtime
 FROM eclipse-temurin:17-jdk-alpine AS runtime

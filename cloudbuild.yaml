@@ -1,11 +1,21 @@
+availableSecrets:
+  secretManager:
+    - versionName: projects/$PROJECT_ID/secrets/github-username/versions/latest
+      env: 'GITHUB_USER_SECRET'
+    - versionName: projects/$PROJECT_ID/secrets/github-token/versions/latest
+      env: 'GITHUB_TOKEN_SECRET'
+
 steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
+      '--build-arg', 'GITHUB_USER_ARG=${GITHUB_USER_SECRET}',
+      '--build-arg', 'GITHUB_TOKEN_ARG=${GITHUB_TOKEN_SECRET}',
       '-t',
       '${_ARTIFACT_REGISTRY_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/${_SERVICE_NAME}:$COMMIT_SHA',
       '.'
     ]
+    secretEnv: ['GITHUB_USER_SECRET', 'GITHUB_TOKEN_SECRET']
     id: 'Build Image'
   - name: 'gcr.io/cloud-builders/docker'
     args: [

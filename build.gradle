@@ -26,10 +26,8 @@ repositories {
 		name = "GitHubPackages"
 		url = uri("https://maven.pkg.github.com/Grid-Java-Internship/maven-libraries")
 		credentials {
-			println("GITHUB_USER: ${project.findProperty('githubUsername')}")
-			println("GITHUB_USER: ${project.findProperty('githubToken')}")
-			username = project.findProperty('githubUsername')
-			password = project.findProperty('githubToken')
+			username = System.getenv("GITHUB_USER")
+			password = System.getenv("GITHUB_TOKEN")
 		}
 	}
 }
