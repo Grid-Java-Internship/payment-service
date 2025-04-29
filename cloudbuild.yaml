@@ -12,8 +12,8 @@ steps:
       - -c
       - |
         docker build \
-          --build-arg GITHUB_USER_ARG=${GITHUB_USER} \
-          --build-arg GITHUB_TOKEN_ARG=${GITHUB_TOKEN} \
+          --build-arg GITHUB_USER_ARG=$$GITHUB_USER \
+          --build-arg GITHUB_TOKEN_ARG=$$GITHUB_TOKEN \
           -t ${_ARTIFACT_REGISTRY_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/${_SERVICE_NAME}:$COMMIT_SHA \
           .
     secretEnv: ['GITHUB_USER', 'GITHUB_TOKEN']
