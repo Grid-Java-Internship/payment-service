@@ -1,8 +1,8 @@
 availableSecrets:
   secretManager:
-    - versionName: projects/$PROJECT_ID/secrets/github-username/versions/latest
+    - versionName: projects/$PROJECT_ID/secrets/github-username
       env: 'GITHUB_USER'
-    - versionName: projects/$PROJECT_ID/secrets/github-token/versions/latest
+    - versionName: projects/$PROJECT_ID/secrets/github-token
       env: 'GITHUB_TOKEN'
 
 steps:
