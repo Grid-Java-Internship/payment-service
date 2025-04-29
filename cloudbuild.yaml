@@ -1,3 +1,10 @@
+availableSecrets:
+  secretManager:
+    - versionName: projects/$PROJECT_ID/secrets/github-username/versions/1
+      env: 'GITHUB_USER'
+    - versionName: projects/$PROJECT_ID/secrets/github-token/versions/1
+      env: 'GITHUB_TOKEN'
+
 steps:
   - name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
@@ -49,13 +56,6 @@ steps:
 
 images:
   - "${_ARTIFACT_REGISTRY_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/${_SERVICE_NAME}:$COMMIT_SHA"
-
-availableSecrets:
-  secretManager:
-    - versionName: projects/$PROJECT_ID/secrets/github-username/versions/1
-      env: 'GITHUB_USER'
-    - versionName: projects/$PROJECT_ID/secrets/github-token/versions/1
-      env: 'GITHUB_TOKEN'
 
 logsBucket: 'gs://${_STORAGE_BUCKET}'
 
