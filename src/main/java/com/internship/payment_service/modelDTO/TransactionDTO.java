@@ -21,7 +21,6 @@ public class TransactionDTO {
 
     private Long transactionId;
 
-    @NotNull(message = "User cannot be null!!!")
     private UserBalanceDTO userBalance;
 
     @NotNull(message = "You must choose type of the transaction!!!")
