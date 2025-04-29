@@ -13,7 +13,7 @@ spring:
   datasource:
     url: jdbc:${DB_TYPE:postgresql}://${DB_HOST:postgres}:${DB_PORT:5432}/${DB_NAME:payment_service}
     username: ${DB_USER:pgAdmin}
-    password: ${DB_PASSWORD:password}
+    password: ${DB_PASS:password}
   application:
     name: ${SPRING_APP_NAME:payment-service}
   jpa:
@@ -51,8 +51,14 @@ configs:
     queues:
       deleteBalance: "deletePendingBalanceQueue"
 
-microserviceUrls:
-  user-service: http://user-service:8081
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${EUREKA_SERVICE_URL:http://eureka-naming-server-service:8761/eureka}
 
 security:
   paths:

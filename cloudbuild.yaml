@@ -13,6 +13,35 @@ steps:
       '${_ARTIFACT_REGISTRY_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/${_SERVICE_NAME}:$COMMIT_SHA'
     ]
     id: 'Push Image'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - container
+      - clusters
+      - get-credentials
+      - '${_GKE_CLUSTER_NAME}'
+      - '--region=${_GKE_REGION}'
+      - '--project=${PROJECT_ID}'
+    id: 'Get GKE Credentials'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: kubectl
+    args:
+      - apply
+      - -f
+      - 'k8s/'
+      - '--namespace=${_K8S_NAMESPACE}'
+    id: 'Apply Manifests'
+    waitFor: [ 'Get GKE Credentials' ]
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: kubectl
+    args:
+      - set
+      - image
+      - deployment/${_K8S_DEPLOYMENT_NAME}
+      - ${_K8S_CONTAINER_NAME}=${_ARTIFACT_REGISTRY_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/${_SERVICE_NAME}:$COMMIT_SHA
+      - '--namespace=${_K8S_NAMESPACE}'
+    id: 'Set Image'
+    waitFor: [ 'Apply Manifests' ]
 
 images:
   - "${_ARTIFACT_REGISTRY_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/${_SERVICE_NAME}:$COMMIT_SHA"
