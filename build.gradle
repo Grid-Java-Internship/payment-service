@@ -20,6 +20,16 @@ configurations {
 	}
 }
 
+bootJar {
+	enabled = true
+	archiveFileName = 'app.jar'
+	archiveClassifier = ''
+}
+
+jar {
+	enabled = false
+}
+
 repositories {
 	mavenCentral()
 	maven {

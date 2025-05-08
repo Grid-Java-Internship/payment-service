@@ -23,6 +23,6 @@ RUN addgroup --system --gid 1001 spring && \
 
 WORKDIR /home/spring/app
 
-COPY --chown=spring:spring --from=build /app/build/libs/*.jar app.jar
+COPY --chown=spring:spring --from=build /app/build/libs/app.jar app.jar
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
