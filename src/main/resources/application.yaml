@@ -20,6 +20,9 @@ spring:
     username: ${RABBITMQ_USERNAME:guest}
     password: ${RABBITMQ_PASSWORD:guest}
 
+
+  config:
+    import: "classpath:secrets.yaml"
 logging:
   pattern:
     console: ${LOG_PATTERN_CONSOLE:%green(%d{HH:mm:ss.SSS}) %blue(%-5level) %red([%thread]) %yellow(%logger{15}) - %msg%n}
@@ -29,6 +32,8 @@ management:
     web:
       exposure:
         include: "*"
+
+
 
 server:
   port: ${SERVER_PORT:8089}
@@ -69,3 +74,10 @@ security:
       - method: GET
         pattern: /v1/payments
     permittedRequestForSuperAdmin: [ ]
+
+
+  feign:
+    user-service:
+      api-key: "DEFAULT-USER-SERVICE-KEY"
+      enabled: true
+  api-key: "DEFAULT-PAYMENT-SERVICE-KEY"
