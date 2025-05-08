@@ -63,6 +63,8 @@ security:
         pattern: /v1/transactions/deposit
       - method: POST
         pattern: /v1/transactions/withdraw
+      - method: PUT
+        pattern: /v1/transactions/confirm/**
     permittedRequestsForAdminOrSuperAdmin:
       - method: GET
         pattern: /v1/payments

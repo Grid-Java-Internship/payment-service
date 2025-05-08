@@ -155,7 +155,9 @@ public class TransactionServiceImpl implements TransactionService {
     public Status processStatusType(Double amountToWithdraw, Double userBalance) {
         return (amountToWithdraw > userBalance) ? Status.REJECTED : Status.COMPLETED;
     }
+
     @Override
+    @Transactional
     public void confirm(Long transactionId) {
         Transaction transaction = transactionRepository
                 .findById(transactionId)
@@ -163,7 +165,8 @@ public class TransactionServiceImpl implements TransactionService {
 
         transaction.setStatus(Status.COMPLETED);
 
-        processTransaction(transactionMapper.entityToDto(transaction), PaymentAction.DEPOSIT);
+        double newBalance = transaction.getUserBalance().getBalance() + transaction.getAmount();
+        transaction.getUserBalance().setBalance(newBalance);
     }
 
     private enum PaymentAction {
