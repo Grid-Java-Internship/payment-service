@@ -32,6 +32,21 @@ spec:
                   key: POSTGRES_PASSWORD
             - name: DB_NAME
               value: "payment_service"
+            - name: RABBITMQ_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: rabbimq-secret
+                  key: RABBITMQ_HOST
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: rabbimq-secret
+                  key: RABBITMQ_USERNAME
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbimq-secret
+                  key: RABBITMQ_PASSWORD
           ports:
             - containerPort: 8080
           imagePullPolicy: IfNotPresent
