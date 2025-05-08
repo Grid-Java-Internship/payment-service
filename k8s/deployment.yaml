@@ -11,7 +11,7 @@ spec:
   template:
     metadata:
       labels:
-        app: user-service
+        app: payment-service
     spec:
       automountServiceAccountToken: false
       containers:
