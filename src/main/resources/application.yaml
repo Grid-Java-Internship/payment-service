@@ -1,3 +1,12 @@
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+    service-url:
+      defaultZone: ${EUREKA_SERVICE_URL:http://eureka-naming-server:8761/eureka}
+
 spring:
   profiles:
     active: default
@@ -21,8 +30,7 @@ spring:
     password: ${RABBITMQ_PASSWORD:guest}
 
 
-  config:
-    import: "classpath:secrets.yaml"
+
 logging:
   pattern:
     console: ${LOG_PATTERN_CONSOLE:%green(%d{HH:mm:ss.SSS}) %blue(%-5level) %red([%thread]) %yellow(%logger{15}) - %msg%n}
@@ -76,8 +84,8 @@ security:
     permittedRequestForSuperAdmin: [ ]
 
 
+  api-key: "${BASE_API_KEY}"
   feign:
     user-service:
-      api-key: "DEFAULT-USER-SERVICE-KEY"
+      api-key: "${USER_API_KEY}"
       enabled: true
-  api-key: "DEFAULT-PAYMENT-SERVICE-KEY"
