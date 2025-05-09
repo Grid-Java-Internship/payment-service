@@ -52,8 +52,9 @@ public class TransactionServiceImpl implements TransactionService {
      * {@link NotFoundException} with a message indicating that the user has insufficient balance.
      * If the transaction is successful, it will add the transaction to the database and return a
      * {@link TransactionResponse} with the transaction details and a success message.
+     *
      * @param transactionDTO The transaction to be processed
-     * @param paymentAction The type of transaction (DEPOSIT, WITHDRAW)
+     * @param paymentAction  The type of transaction (DEPOSIT, WITHDRAW)
      * @return A {@link TransactionResponse} with the transaction details and a success message
      */
     private TransactionResponse processTransaction(TransactionDTO transactionDTO, PaymentAction paymentAction) {
@@ -63,8 +64,8 @@ public class TransactionServiceImpl implements TransactionService {
 
         Status status = processStatusType(transactionDTO.getAmount());
 
-        if(Status.COMPLETED.equals(status)){
-             status = (paymentAction == PaymentAction.DEPOSIT)
+        if (Status.COMPLETED.equals(status)) {
+            status = (paymentAction == PaymentAction.DEPOSIT)
                     ? Status.COMPLETED // TODO find a way to fix this IF call, if I go from ON_HOLD TO COMPLETED it shouldn't be possible to take it back to ON_HOLD
                     : processStatusType(transactionDTO.getAmount(), userBalance.getBalance());
         }
@@ -73,7 +74,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         log.info("{}", transactionDTO);
 
-        if(Status.ON_HOLD.equals(transactionDTO.getStatus()) && PaymentAction.DEPOSIT.equals(paymentAction)) {
+        if (Status.ON_HOLD.equals(transactionDTO.getStatus()) && PaymentAction.DEPOSIT.equals(paymentAction)) {
             UserDTO userDTO = Optional
                     .of(userProxy
                             .getUserById(userBalance.getUserId()))
@@ -86,7 +87,7 @@ public class TransactionServiceImpl implements TransactionService {
 
             log.info("TRANSACTION: {}", transaction);
 
-            transactionProducer.send(userDTO.getEmail(),transaction.getTransactionId(),Status.ON_HOLD);
+            transactionProducer.send(userDTO.getEmail(), transaction.getTransactionId(), Status.ON_HOLD);
 
             return TransactionResponse.builder().returnMessage("Your transaction is on hold. Please confirm it on mail").build();
         }
@@ -100,7 +101,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         Transaction transaction;
 
-        if(transactionDTO.getTransactionId() != null){
+        if (transactionDTO.getTransactionId() != null) {
             transaction = transactionRepository.findByTransactionId(transactionDTO.getTransactionId());
             transaction.setUserBalance(userBalance);
             transactionRepository.save(transaction);
@@ -125,9 +126,10 @@ public class TransactionServiceImpl implements TransactionService {
      * successful and the new balance of the user. If the transaction status is ON_HOLD it will
      * return a message indicating that the transaction is on hold. If the transaction is rejected,
      * it will return a message indicating that the transaction was rejected due to insufficient balance.
+     *
      * @param transactionDTO The transaction details
-     * @param paymentAction The type of transaction (DEPOSIT, WITHDRAW)
-     * @param transaction The transaction entity
+     * @param paymentAction  The type of transaction (DEPOSIT, WITHDRAW)
+     * @param transaction    The transaction entity
      * @return A message based on the transaction details and the payment action
      */
     private static String getMessage(TransactionDTO transactionDTO, PaymentAction paymentAction, Transaction transaction) {
@@ -159,17 +161,24 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public void confirm(Long transactionId) {
+
         Transaction transaction = transactionRepository
                 .findById(transactionId)
                 .orElseThrow(() -> new NotFoundException("Transaction with id: " + transactionId + " not found!!"));
 
+        if (Status.COMPLETED.equals(transaction.getStatus())) {
+            log.warn("Transaction with id: {} already completed!", transactionId);
+            return;
+        }
         transaction.setStatus(Status.COMPLETED);
 
         double newBalance = transaction.getUserBalance().getBalance() + transaction.getAmount();
         transaction.getUserBalance().setBalance(newBalance);
     }
 
+
     private enum PaymentAction {
         DEPOSIT, WITHDRAW
+
     }
 }

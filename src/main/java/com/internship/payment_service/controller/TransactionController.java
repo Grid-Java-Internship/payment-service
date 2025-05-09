@@ -42,7 +42,7 @@ public class TransactionController {
         return ResponseEntity.ok(transactionService.withdraw(transactionDTO));
     }
 
-    @PutMapping("/confirm/{id}")
+    @GetMapping("/confirm/{id}")
     public ResponseEntity<Void> confirmTransaction(@PathVariable("id") Long transactionId) {
         transactionService.confirm(transactionId);
         return ResponseEntity.ok().build();
