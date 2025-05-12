@@ -13,14 +13,13 @@ public class TransactionProducer {
 
     public void send(String emailTo, Long transactionId, Status status) {
 
-        Message message = makeAMessage(emailTo,transactionId,status);
-
-    amqpTemplate.convertAndSend("holdTransactionQueue",message);
+        Message message = makeAMessage(emailTo, transactionId, status);
+        amqpTemplate.convertAndSend("transactions", "holdTransaction", message);
     }
 
-    private Message makeAMessage(String emailTo, Long transactionId,Status status) {
+    private Message makeAMessage(String emailTo, Long transactionId, Status status) {
 
-        if(Status.ON_HOLD.equals(status)) {
+        if (Status.ON_HOLD.equals(status)) {
             return Message
                     .builder()
                     .title("Confirm your transaction")

@@ -63,6 +63,8 @@ security:
         pattern: /swagger-ui/**
       - method: GET
         pattern: /v3/api-docs/**
+      - method: GET
+        pattern: /v1/transactions/confirm/**
     permittedRequestsForUsersOrAdminOrSuperAdmin:
       - method: GET
         pattern: /v1/user/balance/{id}
@@ -70,8 +72,6 @@ security:
         pattern: /v1/transactions/deposit
       - method: POST
         pattern: /v1/transactions/withdraw
-      - method: PUT
-        pattern: /v1/transactions/confirm/**
       - method: POST
         pattern: /v1/payments/pay
       - method: POST
