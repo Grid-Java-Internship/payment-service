@@ -1,11 +1,14 @@
 package com.internship.payment_service.service;
 
+import com.internship.payment_service.exception.NotEnoughBalanceException;
 import com.internship.payment_service.exception.NotFoundException;
 import com.internship.payment_service.mapper.UserBalanceMapper;
 import com.internship.payment_service.model.UserBalance;
 import com.internship.payment_service.modelDTO.UserBalanceDTO;
 import com.internship.payment_service.repository.UserBalanceRepository;
 import com.internship.payment_service.response.UserBalanceResponse;
+import feign.FeignException;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -72,5 +75,24 @@ public class UserBalanceServiceImpl implements UserBalanceService {
 
         userBalanceRepository.delete(userBalance);
         return true;
+    }
+
+    @Override
+    @Transactional
+    public void deposit(Long userId, Double amount) {
+        UserBalance userBalance = userBalanceRepository.findByUserId(userId);
+
+        userBalance.setBalance(userBalance.getBalance()+amount);
+    }
+
+    @Override
+    @Transactional
+    public void withdraw(Long userId, Double amount) {
+        UserBalance userBalance = userBalanceRepository.findByUserId(userId);
+
+        if(userBalance.getBalance() - amount < 0)
+            throw new NotEnoughBalanceException("Not enough balance on users account!");
+
+        userBalance.setBalance(userBalance.getBalance() - amount);
     }
 }

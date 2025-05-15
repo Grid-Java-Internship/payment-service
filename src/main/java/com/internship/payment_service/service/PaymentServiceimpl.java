@@ -41,10 +41,14 @@ public class PaymentServiceimpl implements PaymentService {
      */
     @Override
     public PaymentResponse pay(PaymentDTO paymentDTO) {
+        UserBalance userSender;
 
-        UserBalance userSender = userBalanceRepository
-                .findByUserId(paymentDTO.getUserSender().getUserId());
-
+        if(paymentDTO.getUserSender() == null) {
+            userSender = userBalanceRepository
+                    .findByUserId(Long.parseLong((String) SecurityContextHolder.getContext().getAuthentication().getPrincipal()));
+        }else{
+            userSender = userBalanceRepository.findByUserId(paymentDTO.getUserSender().getUserId());
+        }
 
         UserBalance userReceiver = userBalanceRepository.findById(paymentDTO.getUserReceiver().getUserId()).
                 orElseThrow(() -> new NotFoundException("User Receiver with id: " + paymentDTO.getUserReceiver().getUserId() + " not found!!"));

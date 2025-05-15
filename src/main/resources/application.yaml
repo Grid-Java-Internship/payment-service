@@ -78,6 +78,16 @@ security:
         pattern: /v1/user/balance
       - method: DELETE
         pattern: /v1/user/balance/{id}
+      - method: POST
+        pattern: /v1/user/balance
+      - method: DELETE
+        pattern: /v1/user/balance/{id}
+      - method: POST
+        pattern: /v1/payments/pay
+      - method: PUT
+        pattern: /v1/user/balance/withdraw/{id}
+      - method: PUT
+        pattern: /v1/user/balance/deposit/{id}
     permittedRequestsForAdminOrSuperAdmin:
       - method: GET
         pattern: /v1/payments

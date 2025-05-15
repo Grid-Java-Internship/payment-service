@@ -5,10 +5,8 @@ import com.internship.payment_service.mapper.UserBalanceMapper;
 import com.internship.payment_service.model.UserBalance;
 import com.internship.payment_service.modelDTO.UserBalanceDTO;
 import com.internship.payment_service.proxy.UserDTO;
-import com.internship.payment_service.proxy.UserProxy;
 import com.internship.payment_service.repository.UserBalanceRepository;
 import com.internship.payment_service.response.UserBalanceResponse;
-import feign.FeignException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,10 +23,6 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserBalanceServiceImplTest {
-
-    @Mock
-    private UserProxy userProxy;
-
     @Mock
     private UserBalanceRepository userBalanceRepository;
 
@@ -66,7 +60,6 @@ class UserBalanceServiceImplTest {
     @Test
     void addUserBalance_shouldAddBalanceSuccessfully_whenUserExists() {
 
-        when(userProxy.getUserById(userBalanceDTO.getUserId())).thenReturn(userDTO);
         when(userBalanceMapper.dtoToEntity(userBalanceDTO)).thenReturn(userBalance);
         when(userBalanceRepository.save(userBalance)).thenReturn(userBalance);
 
@@ -75,7 +68,6 @@ class UserBalanceServiceImplTest {
         assertNotNull(response);
         assertEquals("Successfully added user with initial balance 0", response);
 
-        verify(userProxy).getUserById(userBalance.getUserId());
         verify(userBalanceMapper).dtoToEntity(userBalanceDTO);
         verify(userBalanceRepository).save(userBalance);
 
@@ -83,14 +75,10 @@ class UserBalanceServiceImplTest {
 
     @Test
     void addUserBalance_shouldThrowNotFoundException_whenUserNotFound() {
-
-        when(userProxy.getUserById(1L)).thenThrow(FeignException.NotFound.class);
-
         NotFoundException exception = assertThrows(NotFoundException.class,
                 () -> userBalanceService.addUserBalance(userBalanceDTO));
 
         assertEquals("User not found", exception.getMessage());
-        verify(userProxy).getUserById(1L);
         verify(userBalanceRepository, never()).save(any());
     }
 
@@ -104,7 +92,7 @@ class UserBalanceServiceImplTest {
 
         assertEquals("User balance with id: 1 already exists!!", exception.getMessage());
 
-        verify(userProxy, never()).getUserById(userBalanceDTO.getUserId());
+
         verify(userBalanceRepository, never()).save(any());
         verify(userBalanceMapper, never()).dtoToEntity(userBalanceDTO);
     }
