@@ -5,8 +5,6 @@ import com.internship.payment_service.exception.NotFoundException;
 import com.internship.payment_service.mapper.UserBalanceMapper;
 import com.internship.payment_service.model.UserBalance;
 import com.internship.payment_service.modelDTO.UserBalanceDTO;
-import com.internship.payment_service.proxy.UserDTO;
-import com.internship.payment_service.proxy.UserProxy;
 import com.internship.payment_service.repository.UserBalanceRepository;
 import com.internship.payment_service.response.UserBalanceResponse;
 import feign.FeignException;
