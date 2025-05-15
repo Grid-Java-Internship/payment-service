@@ -11,4 +11,7 @@ public interface UserBalanceService {
 
     Boolean deleteUserBalance(Long userId);
 
+    void deposit(Long userId, Double amount);
+
+    void withdraw(Long userId,Double amount);
 }

@@ -59,4 +59,16 @@ public class UserBalanceController {
     public ResponseEntity<Boolean> deleteUserBalanceById(@PathVariable Long id) {
         return ResponseEntity.ok(userBalanceService.deleteUserBalance(id));
     }
+
+    @PutMapping("/withdraw/{id}")
+    ResponseEntity<Void> withdraw(@PathVariable Long id, @RequestBody Double amount){
+        userBalanceService.deposit(id,amount);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/deposit/{id}")
+    ResponseEntity<Void> deposit(@PathVariable Long id, @RequestBody Double amount){
+        userBalanceService.withdraw(id,amount);
+        return ResponseEntity.ok().build();
+    }
 }

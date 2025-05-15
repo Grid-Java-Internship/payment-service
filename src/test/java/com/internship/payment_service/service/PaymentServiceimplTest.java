@@ -91,6 +91,7 @@ class PaymentServiceImplTest {
     @Test
     void pay_shouldTransferMoneySuccessfully_whenFundsAreSufficient() {
         try (MockedStatic<SecurityContextHolder> mockedStatic = Mockito.mockStatic(SecurityContextHolder.class)) {
+            paymentDTO.setUserSender(null);
             mockedStatic.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
             when(authentication.getPrincipal()).thenReturn("1");
@@ -121,6 +122,7 @@ class PaymentServiceImplTest {
     @Test
     void pay_shouldRejectTransaction_whenInsufficientFunds() {
         try (MockedStatic<SecurityContextHolder> mockedStatic = Mockito.mockStatic(SecurityContextHolder.class)) {
+            paymentDTO.setUserSender(null);
             // Mock security context
             mockedStatic.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
@@ -154,6 +156,7 @@ class PaymentServiceImplTest {
     @Test
     void pay_shouldThrowException_whenSenderAndReceiverAreSame() {
         try (MockedStatic<SecurityContextHolder> mockedStatic = Mockito.mockStatic(SecurityContextHolder.class)) {
+            paymentDTO.setUserSender(null);
             mockedStatic.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
             when(authentication.getPrincipal()).thenReturn("1");
@@ -176,6 +179,7 @@ class PaymentServiceImplTest {
     @Test
     void pay_shouldThrowException_whenReceiverNotFound() {
         try (MockedStatic<SecurityContextHolder> mockedStatic = Mockito.mockStatic(SecurityContextHolder.class)) {
+            paymentDTO.setUserSender(null);
             mockedStatic.when(SecurityContextHolder::getContext).thenReturn(securityContext);
             when(securityContext.getAuthentication()).thenReturn(authentication);
             when(authentication.getPrincipal()).thenReturn("1");
