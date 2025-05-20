@@ -233,5 +233,6 @@ gradle.properties
 ### Gradle Patch ###
 # Java heap dump
 *.hprof
-# End of https://www.toptal.com/developers/gitignore/api/java,macos,intellij,maven,gradle,git
+
 .env
+# End of https://www.toptal.com/developers/gitignore/api/java,macos,intellij,maven,gradle,git

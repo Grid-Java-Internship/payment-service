@@ -57,6 +57,6 @@ steps:
 images:
   - "${_ARTIFACT_REGISTRY_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REGISTRY_REPO}/${_SERVICE_NAME}:$COMMIT_SHA"
 
-logsBucket: 'gs://${_STORAGE_BUCKET}'
+logsBucket: 'gs://${_STORAGE_BUCKET}/payment-service'
 
 timeout: '1200s'
