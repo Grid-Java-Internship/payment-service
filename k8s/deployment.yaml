@@ -50,12 +50,12 @@ spec:
             - name: BASE_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: base-api-secret
+                  name: api-key-secret
                   key: PAYMENT_API_KEY
             - name: USER_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: base-api-secret
+                  name: api-key-secret
                   key: USER_API_KEY
             - name: EUREKA_SERVICE_URL
               value: http://eureka-naming-server-service:8761/eureka
