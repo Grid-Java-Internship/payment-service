@@ -47,7 +47,7 @@ class PaymentServiceImplTest {
     private Authentication authentication;
 
     @InjectMocks
-    private PaymentServiceimpl paymentService;
+    private PaymentServiceImpl paymentService;
 
     private PaymentDTO paymentDTO;
     private UserBalance userSender;

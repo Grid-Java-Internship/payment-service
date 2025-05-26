@@ -11,6 +11,7 @@ import com.internship.payment_service.repository.UserBalanceRepository;
 import com.internship.payment_service.response.PaymentResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,7 +20,7 @@ import java.util.Objects;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PaymentServiceimpl implements PaymentService {
+public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final PaymentMapper paymentMapper;
@@ -43,17 +44,17 @@ public class PaymentServiceimpl implements PaymentService {
     public PaymentResponse pay(PaymentDTO paymentDTO) {
         UserBalance userSender;
 
-        if(paymentDTO.getUserSender() == null) {
+        if (paymentDTO.getUserSender() == null) {
             userSender = userBalanceRepository
                     .findByUserId(Long.parseLong((String) SecurityContextHolder.getContext().getAuthentication().getPrincipal()));
-        }else{
+        } else {
             userSender = userBalanceRepository.findByUserId(paymentDTO.getUserSender().getUserId());
         }
 
         UserBalance userReceiver = userBalanceRepository.findById(paymentDTO.getUserReceiver().getUserId()).
                 orElseThrow(() -> new NotFoundException("User Receiver with id: " + paymentDTO.getUserReceiver().getUserId() + " not found!!"));
 
-        if(Objects.equals(userSender.getUserId(), userReceiver.getUserId())) {
+        if (Objects.equals(userSender.getUserId(), userReceiver.getUserId())) {
             throw new IllegalArgumentException("You cannot transfer money to yourself");
         }
 
