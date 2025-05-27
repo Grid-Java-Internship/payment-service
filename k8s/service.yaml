@@ -10,3 +10,4 @@ spec:
     - name: gateway
       protocol: TCP
       port: 8089
+  type: ClusterIP
